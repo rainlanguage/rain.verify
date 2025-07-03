@@ -3,7 +3,7 @@ pragma solidity =0.8.25;
 
 import "./IVerifyCallbackV1.sol";
 
-import {AccessControlUpgradeable as AccessControl} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {AccessControlUpgradeable as AccessControl} from "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import "./libraries/VerifyConstants.sol";
 import "./LibEvidence.sol";
 import "sol.lib.memory/LibUint256Array.sol";

@@ -2,7 +2,7 @@
 pragma solidity =0.8.25;
 
 import "./IVerifyCallbackV1.sol";
-import {OwnableUpgradeable as Ownable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {OwnableUpgradeable as Ownable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 /// @title VerifyCallback
 /// Implements empty virtual functions for every function in `IVerifyCallbackV1`
