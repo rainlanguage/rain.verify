@@ -28,26 +28,26 @@ import {Evidence} from "./IVerifyV1.sol";
 interface IVerifyCallbackV1 {
     /// Additional processing after a batch of additions.
     /// SHOULD revert/rollback transactions if processing fails.
-    /// @param adder_ The `msg.sender` that authorized the additions.
+    /// @param adder The `msg.sender` that authorized the additions.
     /// MAY be the addee without any specific role.
-    /// @param evidences_ All evidences associated with the additions.
-    function afterAdd(address adder_, Evidence[] calldata evidences_) external;
+    /// @param evidences All evidences associated with the additions.
+    function afterAdd(address adder, Evidence[] calldata evidences) external;
 
     /// Additional processing after a batch of approvals.
     /// SHOULD revert/rollback transactions if processing fails.
-    /// @param approver_ The `msg.sender` that authorized the approvals.
-    /// @param evidences_ All evidences associated with the approvals.
-    function afterApprove(address approver_, Evidence[] calldata evidences_) external;
+    /// @param approver The `msg.sender` that authorized the approvals.
+    /// @param evidences All evidences associated with the approvals.
+    function afterApprove(address approver, Evidence[] calldata evidences) external;
 
     /// Additional processing after a batch of bannings.
     /// SHOULD revert/rollback transactions if processing fails.
-    /// @param banner_ The `msg.sender` that authorized the bannings.
-    /// @param evidences_ All evidences associated with the bannings.
-    function afterBan(address banner_, Evidence[] calldata evidences_) external;
+    /// @param banner The `msg.sender` that authorized the bannings.
+    /// @param evidences All evidences associated with the bannings.
+    function afterBan(address banner, Evidence[] calldata evidences) external;
 
     /// Additional processing after a batch of removals.
     /// SHOULD revert/rollback transactions if processing fails.
-    /// @param remover_ The `msg.sender` that authorized the removals.
-    /// @param evidences_ All evidences associated with the removals.
-    function afterRemove(address remover_, Evidence[] calldata evidences_) external;
+    /// @param remover The `msg.sender` that authorized the removals.
+    /// @param evidences All evidences associated with the removals.
+    function afterRemove(address remover, Evidence[] calldata evidences) external;
 }
