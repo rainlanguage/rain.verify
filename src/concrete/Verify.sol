@@ -10,6 +10,7 @@ import {IVerifyV1, Evidence} from "../interface/IVerifyV1.sol";
 import {IVerifyCallbackV1} from "../interface/IVerifyCallbackV1.sol";
 import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
+import {ZeroAdmin, NotApproved, AlreadyExists} from "../err/ErrVerify.sol";
 
 /// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
@@ -255,7 +256,9 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     /// @inheritdoc ICloneableV2
     function initialize(bytes calldata data) external initializer returns (bytes32) {
         VerifyConfig memory config = abi.decode(data, (VerifyConfig));
-        require(config.admin != address(0), "0_ACCOUNT");
+        if (config.admin == address(0)) {
+            revert ZeroAdmin();
+        }
         __AccessControl_init();
 
         // `APPROVER_ADMIN` can admin each other in addition to
@@ -336,9 +339,9 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// Requires that `msg.sender` is approved as at the current timestamp.
     modifier onlyApproved() {
-        require(
-            statusAtTime(sStates[msg.sender], block.timestamp).eq(LibVerifyConstants.STATUS_APPROVED), "ONLY_APPROVED"
-        );
+        if (!statusAtTime(sStates[msg.sender], block.timestamp).eq(LibVerifyConstants.STATUS_APPROVED)) {
+            revert NotApproved();
+        }
         _;
     }
 
@@ -353,10 +356,10 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     function add(bytes calldata data) external {
         State memory lState = sStates[msg.sender];
         VerifyStatus currentStatus = statusAtTime(lState, block.timestamp);
-        require(
-            !currentStatus.eq(LibVerifyConstants.STATUS_APPROVED) && !currentStatus.eq(LibVerifyConstants.STATUS_BANNED),
-            "ALREADY_EXISTS"
-        );
+        if (currentStatus.eq(LibVerifyConstants.STATUS_APPROVED) && !currentStatus.eq(LibVerifyConstants.STATUS_BANNED))
+        {
+            revert AlreadyExists();
+        }
         // An account that hasn't already been added need a new state.
         // If an account has already been added but not approved or banned
         // they can emit many `RequestApprove` events without changing
