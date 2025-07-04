@@ -1,126 +1,108 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.25;
 
-import {LibEvidence, Verify} from "../Verify.sol";
-import "../VerifyCallback.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import {IInterpreterV4} from "rain.interpreter.interface/interface/unstable/IInterpreterV4.sol";
-import {IInterpreterCallerV4} from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
+import {LibEvidence, Verify, Evidence} from "../Verify.sol";
+import {VerifyCallback} from "../VerifyCallback.sol";
+import {LibUint256Array} from "rain.solmem/lib/LibUint256Array.sol";
+import {
+    IInterpreterV4,
+    SourceIndexV2,
+    DEFAULT_STATE_NAMESPACE,
+    StackItem,
+    EvalV4
+} from "rain.interpreter.interface/interface/unstable/IInterpreterV4.sol";
+import {
+    IInterpreterCallerV4, EvaluableV4
+} from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
+import {IInterpreterStoreV3} from "rain.interpreter.interface/interface/unstable/IInterpreterStoreV3.sol";
 import {LibContext} from "rain.interpreter.interface/lib/caller/LibContext.sol";
 import {LibEvaluable} from "rain.interpreter.interface/lib/caller/LibEvaluable.sol";
-import {ICloneableV2} from "rain.factory/interface/ICloneableV2.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
+import {LibPointer, Pointer} from "rain.solmem/lib/LibPointer.sol";
+import {LibNamespace} from "rain.interpreter.interface/lib/ns/LibNamespace.sol";
 
-bytes32 constant CALLER_META_HASH = bytes32(
-    0x92932311849707fd57884c540914fe3ff7f45ac30152a2aa7fcc9426a6ac22d7
-);
+bytes32 constant CALLER_META_HASH = bytes32(0x92932311849707fd57884c540914fe3ff7f45ac30152a2aa7fcc9426a6ac22d7);
 
 uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
 uint16 constant CAN_APPROVE_MAX_OUTPUTS = 1;
-SourceIndex constant CAN_APPROVE_ENTRYPOINT = SourceIndex.wrap(0);
+SourceIndexV2 constant CAN_APPROVE_ENTRYPOINT = SourceIndexV2.wrap(0);
 
 struct AutoApproveConfig {
     address owner;
-    EvaluableConfig evaluableConfig;
+    EvaluableV4 evaluable;
 }
 
-contract AutoApprove is
-    ICloneableV1,
-    VerifyCallback,
-    IInterpreterCallerV2,
-    DeployerDiscoverableMetaV1
-{
-    using LibStackPointer for StackPointer;
+contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
+    using LibPointer for Pointer;
     using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
-    using LibStackPointer for uint256[];
-    using LibStackPointer for StackPointer;
+    using LibPointer for uint256[];
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
     /// @param config All initialized config.
     event Initialize(address sender, AutoApproveConfig config);
 
-    Evaluable internal evaluable;
+    EvaluableV4 internal evaluable;
 
-    constructor(
-        DeployerDiscoverableMetaV1ConstructionConfig memory config_
-    ) DeployerDiscoverableMetaV1(CALLER_META_HASH, config_) {
+    constructor() {
         _disableInitializers();
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data) external initializer returns (bytes32 success) {
         verifyCallbackInit();
 
-        AutoApproveConfig memory config_ = abi.decode(
-            data_,
-            (AutoApproveConfig)
-        );
+        AutoApproveConfig memory config = abi.decode(data, (AutoApproveConfig));
 
-        _transferOwnership(config_.owner);
-        emit Initialize(msg.sender, config_);
-        (
-            IInterpreterV1 interpreter_,
-            IInterpreterStoreV1 store_,
-            address expression_
-        ) = config_.evaluableConfig.deployer.deployExpression(
-                config_.evaluableConfig.sources,
-                config_.evaluableConfig.constants,
-                LibUint256Array.arrayFrom(CAN_APPROVE_MIN_OUTPUTS)
-            );
-        evaluable = Evaluable(interpreter_, store_, expression_);
+        _transferOwnership(config.owner);
+        emit Initialize(msg.sender, config);
+        evaluable = config.evaluable;
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
-    function afterAdd(
-        address adder_,
-        Evidence[] calldata evidences_
-    ) public virtual override {
+    function afterAdd(address adder, Evidence[] calldata evidences) public virtual override {
         unchecked {
             // Inherit owner check etc.
-            super.afterAdd(adder_, evidences_);
+            super.afterAdd(adder, evidences);
 
-            uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
-            uint256 approvals_ = 0;
-            uint256[][] memory context_ = new uint256[][](1);
-            context_[0] = new uint256[](2);
-            Evaluable memory evaluable_ = evaluable;
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
+            uint256[] memory approvedRefs = new uint256[](evidences.length);
+            uint256 approvals = 0;
+            bytes32[][] memory context = new bytes32[][](1);
+            context[0] = new bytes32[](2);
+            EvaluableV4 memory lEvaluable = evaluable;
+            for (uint256 i = 0; i < evidences.length; i++) {
                 // Currently we only support 32 byte evidence for auto approve.
-                if (evidences_[i_].data.length == 0x20) {
-                    context_[0][0] = uint256(uint160(evidences_[i_].account));
-                    context_[0][1] = uint256(bytes32(evidences_[i_].data));
-                    emit Context(msg.sender, context_);
-                    (
-                        uint256[] memory stack_,
-                        uint256[] memory kvs_
-                    ) = evaluable_.interpreter.eval(
-                            evaluable_.store,
-                            DEFAULT_STATE_NAMESPACE,
-                            LibEncodedDispatch.encode(
-                                evaluable_.expression,
-                                CAN_APPROVE_ENTRYPOINT,
-                                CAN_APPROVE_MAX_OUTPUTS
-                            ),
-                            context_
-                        );
-                    if (stack_[stack_.length - 1] > 0) {
-                        LibEvidence._updateEvidenceRef(
-                            approvedRefs_,
-                            evidences_[i_],
-                            approvals_
-                        );
-                        approvals_++;
+                if (evidences[i].data.length == 0x20) {
+                    context[0][0] = bytes32(uint256(uint160(evidences[i].account)));
+                    context[0][1] = bytes32(evidences[i].data);
+                    emit ContextV2(msg.sender, context);
+                    (StackItem[] memory stack, bytes32[] memory kvs) = lEvaluable.interpreter.eval4(
+                        EvalV4({
+                            store: lEvaluable.store,
+                            namespace: LibNamespace.qualifyNamespace(DEFAULT_STATE_NAMESPACE, address(this)),
+                            bytecode: lEvaluable.bytecode,
+                            sourceIndex: CAN_APPROVE_ENTRYPOINT,
+                            context: context,
+                            inputs: new StackItem[](0),
+                            stateOverlay: new bytes32[](0)
+                        })
+                    );
+                    if (StackItem.unwrap(stack[stack.length - 1]) > 0) {
+                        LibEvidence._updateEvidenceRef(approvedRefs, evidences[i], approvals);
+                        approvals++;
                     }
-                    if (kvs_.length > 0) {
-                        evaluable_.store.set(DEFAULT_STATE_NAMESPACE, kvs_);
+                    if (kvs.length > 0) {
+                        lEvaluable.store.set(DEFAULT_STATE_NAMESPACE, kvs);
                     }
                 }
             }
 
-            if (approvals_ > 0) {
-                approvedRefs_.truncate(approvals_);
-                Verify(msg.sender).approve(approvedRefs_.asEvidences());
+            if (approvals > 0) {
+                approvedRefs.truncate(approvals);
+                Verify(msg.sender).approve(approvedRefs.asEvidences());
             }
         }
     }

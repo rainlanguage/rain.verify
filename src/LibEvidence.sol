@@ -13,19 +13,13 @@ struct Evidence {
 }
 
 library LibEvidence {
-    function _updateEvidenceRef(
-        uint256[] memory refs_,
-        Evidence memory evidence_,
-        uint256 refsIndex_
-    ) internal pure {
+    function _updateEvidenceRef(uint256[] memory refs_, Evidence memory evidence_, uint256 refsIndex_) internal pure {
         assembly ("memory-safe") {
             mstore(add(refs_, add(0x20, mul(0x20, refsIndex_))), evidence_)
         }
     }
 
-    function asEvidences(
-        uint256[] memory refs_
-    ) internal pure returns (Evidence[] memory evidences_) {
+    function asEvidences(uint256[] memory refs_) internal pure returns (Evidence[] memory evidences_) {
         assembly ("memory-safe") {
             evidences_ := refs_
         }

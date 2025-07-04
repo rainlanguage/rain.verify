@@ -3,13 +3,14 @@ pragma solidity =0.8.25;
 
 import "./IVerifyCallbackV1.sol";
 
-import {AccessControlUpgradeable as AccessControl} from "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
-import "./libraries/VerifyConstants.sol";
-import "./LibEvidence.sol";
-import "sol.lib.memory/LibUint256Array.sol";
-import "./IVerifyV1.sol";
-import "./libraries/LibVerifyStatus.sol";
-import "rain.interface.factory/ICloneableV1.sol";
+import {AccessControlUpgradeable as AccessControl} from
+    "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
+import {VerifyConstants} from "./libraries/VerifyConstants.sol";
+import {LibEvidence} from "./LibEvidence.sol";
+import {LibUint256Array} from "rain.solmem/lib/LibUint256Array.sol";
+import {IVerifyV1} from "./IVerifyV1.sol";
+import {LibVerifyStatus, VerifyStatus} from "./libraries/LibVerifyStatus.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
 
 /// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
@@ -175,7 +176,7 @@ struct VerifyConfig {
 /// the first approve will be used and the onchain callback will be called for
 /// the first transaction only, but BOTH approvals will emit an event. This
 /// logic is applied per-account, per-action across a batch of evidences.
-contract Verify is IVerifyV1, ICloneableV1, AccessControl {
+contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
     using LibVerifyStatus for VerifyStatus;
@@ -252,8 +253,8 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
         _disableInitializers();
     }
 
-    /// @inheritdoc ICloneableV1
-    function initialize(bytes calldata data_) external initializer {
+    /// @inheritdoc ICloneableV2
+    function initialize(bytes calldata data_) external initializer returns (bytes32) {
         VerifyConfig memory config_ = abi.decode(data_, (VerifyConfig));
         require(config_.admin != address(0), "0_ACCOUNT");
         __AccessControl_init();
@@ -287,6 +288,8 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
         callback = IVerifyCallbackV1(config_.callback);
 
         emit Initialize(msg.sender, config_);
+
+        return ICLONEABLE_V2_SUCCESS;
     }
 
     /// Typed accessor into states.
@@ -299,10 +302,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
     /// @param state_ The raw `State` to reduce into a `Status`.
     /// @param timestamp_ The timestamp to compare `State` against.
     /// @return status_ The status in `State` given `timestamp_`.
-    function statusAtTime(
-        State memory state_,
-        uint256 timestamp_
-    ) public pure returns (VerifyStatus status_) {
+    function statusAtTime(State memory state_, uint256 timestamp_) public pure returns (VerifyStatus status_) {
         // The state hasn't even been added so is picking up time zero as the
         // evm fallback value. In this case if we checked other times using
         // a `<=` equality they would incorrectly return `true` always due to
@@ -331,21 +331,13 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
     }
 
     /// @inheritdoc IVerifyV1
-    function accountStatusAtTime(
-        address account_,
-        uint256 timestamp_
-    ) external view virtual returns (VerifyStatus) {
+    function accountStatusAtTime(address account_, uint256 timestamp_) external view virtual returns (VerifyStatus) {
         return statusAtTime(states[account_], timestamp_);
     }
 
     /// Requires that `msg.sender` is approved as at the current timestamp.
     modifier onlyApproved() {
-        require(
-            statusAtTime(states[msg.sender], block.timestamp).eq(
-                VerifyConstants.STATUS_APPROVED
-            ),
-            "ONLY_APPROVED"
-        );
+        require(statusAtTime(states[msg.sender], block.timestamp).eq(VerifyConstants.STATUS_APPROVED), "ONLY_APPROVED");
         _;
     }
 
@@ -361,8 +353,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
         State memory state_ = states[msg.sender];
         VerifyStatus currentStatus_ = statusAtTime(state_, block.timestamp);
         require(
-            !currentStatus_.eq(VerifyConstants.STATUS_APPROVED) &&
-                !currentStatus_.eq(VerifyConstants.STATUS_BANNED),
+            !currentStatus_.eq(VerifyConstants.STATUS_APPROVED) && !currentStatus_.eq(VerifyConstants.STATUS_BANNED),
             "ALREADY_EXISTS"
         );
         // An account that hasn't already been added need a new state.
@@ -420,11 +411,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
                 if (state_.addedSince < 1) {
                     state_ = newState();
 
-                    LibEvidence._updateEvidenceRef(
-                        addedRefs_,
-                        evidence_,
-                        additions_
-                    );
+                    LibEvidence._updateEvidenceRef(addedRefs_, evidence_, additions_);
                     additions_++;
                 }
                 // If the account hasn't been approved we approve it. As there
@@ -440,11 +427,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
                     state_.approvedSince = uint32(block.timestamp);
                     states[evidence_.account] = state_;
 
-                    LibEvidence._updateEvidenceRef(
-                        approvedRefs_,
-                        evidence_,
-                        approvals_
-                    );
+                    LibEvidence._updateEvidenceRef(approvedRefs_, evidence_, approvals_);
                     approvals_++;
                 }
 
@@ -461,10 +444,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
                 }
                 if (approvals_ > 0) {
                     approvedRefs_.truncate(approvals_);
-                    callback_.afterApprove(
-                        msg.sender,
-                        approvedRefs_.asEvidences()
-                    );
+                    callback_.afterApprove(msg.sender, approvedRefs_.asEvidences());
                 }
             }
         }
@@ -473,9 +453,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
     /// Any approved address can request some address be approved.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request approvals for.
-    function requestApprove(
-        Evidence[] calldata evidences_
-    ) external onlyApproved {
+    function requestApprove(Evidence[] calldata evidences_) external onlyApproved {
         unchecked {
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 emit RequestApprove(msg.sender, evidences_[i_]);
@@ -504,11 +482,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
                 if (state_.addedSince < 1) {
                     state_ = newState();
 
-                    LibEvidence._updateEvidenceRef(
-                        addedRefs_,
-                        evidence_,
-                        additions_
-                    );
+                    LibEvidence._updateEvidenceRef(addedRefs_, evidence_, additions_);
                     additions_++;
                 }
                 // Respect prior bans by leaving onchain storage as-is.
@@ -516,11 +490,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
                     state_.bannedSince = uint32(block.timestamp);
                     states[evidence_.account] = state_;
 
-                    LibEvidence._updateEvidenceRef(
-                        bannedRefs_,
-                        evidence_,
-                        bans_
-                    );
+                    LibEvidence._updateEvidenceRef(bannedRefs_, evidence_, bans_);
                     bans_++;
                 }
 
@@ -568,11 +538,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
                 state_ = states[evidences_[i_].account];
                 if (state_.addedSince > 0) {
                     delete (states[evidence_.account]);
-                    LibEvidence._updateEvidenceRef(
-                        removedRefs_,
-                        evidence_,
-                        removals_
-                    );
+                    LibEvidence._updateEvidenceRef(removedRefs_, evidence_, removals_);
                     removals_++;
                 }
                 emit Remove(msg.sender, evidence_);
@@ -581,10 +547,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
             if (address(callback_) != address(0)) {
                 if (removals_ > 0) {
                     removedRefs_.truncate(removals_);
-                    callback_.afterRemove(
-                        msg.sender,
-                        removedRefs_.asEvidences()
-                    );
+                    callback_.afterRemove(msg.sender, removedRefs_.asEvidences());
                 }
             }
         }
@@ -593,9 +556,7 @@ contract Verify is IVerifyV1, ICloneableV1, AccessControl {
     /// Any approved address can request some address be removed.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences_ Array of evidences to request removal of.
-    function requestRemove(
-        Evidence[] calldata evidences_
-    ) external onlyApproved {
+    function requestRemove(Evidence[] calldata evidences_) external onlyApproved {
         unchecked {
             for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
                 emit RequestRemove(msg.sender, evidences_[i_]);

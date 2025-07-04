@@ -37,10 +37,7 @@ interface IVerifyCallbackV1 {
     /// SHOULD revert/rollback transactions if processing fails.
     /// @param approver_ The `msg.sender` that authorized the approvals.
     /// @param evidences_ All evidences associated with the approvals.
-    function afterApprove(
-        address approver_,
-        Evidence[] calldata evidences_
-    ) external;
+    function afterApprove(address approver_, Evidence[] calldata evidences_) external;
 
     /// Additional processing after a batch of bannings.
     /// SHOULD revert/rollback transactions if processing fails.
@@ -52,8 +49,5 @@ interface IVerifyCallbackV1 {
     /// SHOULD revert/rollback transactions if processing fails.
     /// @param remover_ The `msg.sender` that authorized the removals.
     /// @param evidences_ All evidences associated with the removals.
-    function afterRemove(
-        address remover_,
-        Evidence[] calldata evidences_
-    ) external;
+    function afterRemove(address remover_, Evidence[] calldata evidences_) external;
 }

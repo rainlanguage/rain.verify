@@ -13,55 +13,19 @@ contract VerifyCallback is IVerifyCallbackV1, Ownable {
         __Ownable_init();
     }
 
-    function afterAdd(
-        address adder_,
-        Evidence[] calldata evidences_
-    )
-        public
-        virtual
-        override
-        onlyOwner
+    function afterAdd(address adder_, Evidence[] calldata evidences_) public virtual override onlyOwner 
     // solhint-disable-next-line no-empty-blocks
-    {
+    {}
 
-    }
-
-    function afterApprove(
-        address approver_,
-        Evidence[] calldata evidences_
-    )
-        public
-        virtual
-        override
-        onlyOwner
+    function afterApprove(address approver_, Evidence[] calldata evidences_) public virtual override onlyOwner 
     // solhint-disable-next-line no-empty-blocks
-    {
+    {}
 
-    }
-
-    function afterBan(
-        address banner_,
-        Evidence[] calldata evidences_
-    )
-        public
-        virtual
-        override
-        onlyOwner
+    function afterBan(address banner_, Evidence[] calldata evidences_) public virtual override onlyOwner 
     // solhint-disable-next-line no-empty-blocks
-    {
+    {}
 
-    }
-
-    function afterRemove(
-        address remover_,
-        Evidence[] calldata evidences_
-    )
-        public
-        virtual
-        override
-        onlyOwner
+    function afterRemove(address remover_, Evidence[] calldata evidences_) public virtual override onlyOwner 
     // solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+    {}
 }

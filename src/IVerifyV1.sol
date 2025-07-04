@@ -4,8 +4,5 @@ pragma solidity ^0.8.25;
 type VerifyStatus is uint256;
 
 interface IVerifyV1 {
-    function accountStatusAtTime(
-        address account,
-        uint256 timestamp
-    ) external view returns (VerifyStatus);
+    function accountStatusAtTime(address account, uint256 timestamp) external view returns (VerifyStatus);
 }
