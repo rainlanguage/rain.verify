@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.25;
 
-import {LibEvidence, Verify, Evidence} from "../Verify.sol";
-import {VerifyCallback} from "../VerifyCallback.sol";
+import {Evidence} from "../interface/IVerifyV1.sol";
+import {LibEvidence} from "../lib/LibEvidence.sol";
+import {Verify} from "./Verify.sol";
+import {VerifyCallback} from "../abstract/VerifyCallback.sol";
 import {LibUint256Array} from "rain.solmem/lib/LibUint256Array.sol";
 import {
     IInterpreterV4,
@@ -44,7 +46,7 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
     /// @param config All initialized config.
     event Initialize(address sender, AutoApproveConfig config);
 
-    EvaluableV4 internal evaluable;
+    EvaluableV4 internal sEvaluable;
 
     constructor() {
         _disableInitializers();
@@ -58,7 +60,7 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
 
         _transferOwnership(config.owner);
         emit Initialize(msg.sender, config);
-        evaluable = config.evaluable;
+        sEvaluable = config.evaluable;
 
         return ICLONEABLE_V2_SUCCESS;
     }
@@ -72,18 +74,18 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
             uint256 approvals = 0;
             bytes32[][] memory context = new bytes32[][](1);
             context[0] = new bytes32[](2);
-            EvaluableV4 memory lEvaluable = evaluable;
+            EvaluableV4 memory evaluable = sEvaluable;
             for (uint256 i = 0; i < evidences.length; i++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences[i].data.length == 0x20) {
                     context[0][0] = bytes32(uint256(uint160(evidences[i].account)));
                     context[0][1] = bytes32(evidences[i].data);
                     emit ContextV2(msg.sender, context);
-                    (StackItem[] memory stack, bytes32[] memory kvs) = lEvaluable.interpreter.eval4(
+                    (StackItem[] memory stack, bytes32[] memory kvs) = evaluable.interpreter.eval4(
                         EvalV4({
-                            store: lEvaluable.store,
+                            store: evaluable.store,
                             namespace: LibNamespace.qualifyNamespace(DEFAULT_STATE_NAMESPACE, address(this)),
-                            bytecode: lEvaluable.bytecode,
+                            bytecode: evaluable.bytecode,
                             sourceIndex: CAN_APPROVE_ENTRYPOINT,
                             context: context,
                             inputs: new StackItem[](0),
@@ -95,7 +97,7 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
                         approvals++;
                     }
                     if (kvs.length > 0) {
-                        lEvaluable.store.set(DEFAULT_STATE_NAMESPACE, kvs);
+                        evaluable.store.set(DEFAULT_STATE_NAMESPACE, kvs);
                     }
                 }
             }

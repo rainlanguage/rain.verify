@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.25;
 
+type VerifyStatus is uint256;
+
 /// Structure of arbitrary evidence to support any action taken.
 /// Privileged roles are expected to provide evidence just as applicants as an
 /// audit trail will be preserved permanently in the logs.
@@ -12,16 +14,6 @@ struct Evidence {
     bytes data;
 }
 
-library LibEvidence {
-    function _updateEvidenceRef(uint256[] memory refs_, Evidence memory evidence_, uint256 refsIndex_) internal pure {
-        assembly ("memory-safe") {
-            mstore(add(refs_, add(0x20, mul(0x20, refsIndex_))), evidence_)
-        }
-    }
-
-    function asEvidences(uint256[] memory refs_) internal pure returns (Evidence[] memory evidences_) {
-        assembly ("memory-safe") {
-            evidences_ := refs_
-        }
-    }
+interface IVerifyV1 {
+    function accountStatusAtTime(address account, uint256 timestamp) external view returns (VerifyStatus);
 }

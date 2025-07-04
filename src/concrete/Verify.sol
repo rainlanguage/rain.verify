@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: CAL
 pragma solidity =0.8.25;
 
-import "./IVerifyCallbackV1.sol";
-
 import {AccessControlUpgradeable as AccessControl} from
     "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
-import {VerifyConstants} from "./libraries/VerifyConstants.sol";
-import {LibEvidence} from "./LibEvidence.sol";
+import {LibVerifyConstants} from "../lib/LibVerifyConstants.sol";
+import {LibEvidence} from "../lib/LibEvidence.sol";
 import {LibUint256Array} from "rain.solmem/lib/LibUint256Array.sol";
-import {IVerifyV1} from "./IVerifyV1.sol";
-import {LibVerifyStatus, VerifyStatus} from "./libraries/LibVerifyStatus.sol";
+import {IVerifyV1, Evidence} from "../interface/IVerifyV1.sol";
+import {IVerifyCallbackV1} from "../interface/IVerifyCallbackV1.sol";
+import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
 
 /// Records the time a verify session reaches each status.
@@ -243,20 +242,20 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     bytes32 public constant BANNER = keccak256("BANNER");
 
     /// Account => State
-    mapping(address => State) private states;
+    mapping(address => State) private sStates;
 
     /// Optional IVerifyCallbackV1 contract.
     /// MAY be address 0.
-    IVerifyCallbackV1 public callback;
+    IVerifyCallbackV1 public sCallback;
 
     constructor() {
         _disableInitializers();
     }
 
     /// @inheritdoc ICloneableV2
-    function initialize(bytes calldata data_) external initializer returns (bytes32) {
-        VerifyConfig memory config_ = abi.decode(data_, (VerifyConfig));
-        require(config_.admin != address(0), "0_ACCOUNT");
+    function initialize(bytes calldata data) external initializer returns (bytes32) {
+        VerifyConfig memory config = abi.decode(data, (VerifyConfig));
+        require(config.admin != address(0), "0_ACCOUNT");
         __AccessControl_init();
 
         // `APPROVER_ADMIN` can admin each other in addition to
@@ -274,86 +273,88 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
         _setRoleAdmin(BANNER_ADMIN, BANNER_ADMIN);
         _setRoleAdmin(BANNER, BANNER_ADMIN);
 
-        // It is STRONGLY RECOMMENDED that the `admin_` delegates specific
+        // It is STRONGLY RECOMMENDED that the `admin` delegates specific
         // admin roles then revokes the `X_ADMIN` roles. From themselves.
         // It is ALSO RECOMMENDED that each of the sub-`X_ADMIN` roles revokes
         // their admin rights once sufficient approvers/removers/banners have
         // been assigned, if possible. Admins can instantly/atomically assign
         // and revoke admin privileges from each other, so a compromised key
         // can irreperably damage a `Verify` contract instance.
-        _grantRole(APPROVER_ADMIN, config_.admin);
-        _grantRole(REMOVER_ADMIN, config_.admin);
-        _grantRole(BANNER_ADMIN, config_.admin);
+        _grantRole(APPROVER_ADMIN, config.admin);
+        _grantRole(REMOVER_ADMIN, config.admin);
+        _grantRole(BANNER_ADMIN, config.admin);
 
-        callback = IVerifyCallbackV1(config_.callback);
+        sCallback = IVerifyCallbackV1(config.callback);
 
-        emit Initialize(msg.sender, config_);
+        emit Initialize(msg.sender, config);
 
         return ICLONEABLE_V2_SUCCESS;
     }
 
     /// Typed accessor into states.
-    /// @param account_ The account to return the current `State` for.
-    function state(address account_) external view returns (State memory) {
-        return states[account_];
+    /// @param account The account to return the current `State` for.
+    function state(address account) external view returns (State memory) {
+        return sStates[account];
     }
 
     /// Derives a single `Status` from a `State` and a reference timestamp.
-    /// @param state_ The raw `State` to reduce into a `Status`.
-    /// @param timestamp_ The timestamp to compare `State` against.
-    /// @return status_ The status in `State` given `timestamp_`.
-    function statusAtTime(State memory state_, uint256 timestamp_) public pure returns (VerifyStatus status_) {
+    /// @param lState The raw `State` to reduce into a `Status`.
+    /// @param timestamp The timestamp to compare `State` against.
+    /// @return status The status in `State` given `timestamp`.
+    function statusAtTime(State memory lState, uint256 timestamp) public pure returns (VerifyStatus status) {
         // The state hasn't even been added so is picking up time zero as the
         // evm fallback value. In this case if we checked other times using
         // a `<=` equality they would incorrectly return `true` always due to
         // also having a `0` fallback value.
         // Using `< 1` here to silence slither.
-        if (state_.addedSince < 1) {
-            status_ = VerifyConstants.STATUS_NIL;
+        if (lState.addedSince < 1) {
+            status = LibVerifyConstants.STATUS_NIL;
         }
         // Banned takes priority over everything.
-        else if (state_.bannedSince <= timestamp_) {
-            status_ = VerifyConstants.STATUS_BANNED;
+        else if (lState.bannedSince <= timestamp) {
+            status = LibVerifyConstants.STATUS_BANNED;
         }
         // Approved takes priority over added.
-        else if (state_.approvedSince <= timestamp_) {
-            status_ = VerifyConstants.STATUS_APPROVED;
+        else if (lState.approvedSince <= timestamp) {
+            status = LibVerifyConstants.STATUS_APPROVED;
         }
         // Added is lowest priority.
-        else if (state_.addedSince <= timestamp_) {
-            status_ = VerifyConstants.STATUS_ADDED;
+        else if (lState.addedSince <= timestamp) {
+            status = LibVerifyConstants.STATUS_ADDED;
         }
-        // The `addedSince` time is after `timestamp_` so `Status` is nil
-        // relative to `timestamp_`.
+        // The `addedSince` time is after `timestamp` so `Status` is nil
+        // relative to `timestamp`.
         else {
-            status_ = VerifyConstants.STATUS_NIL;
+            status = LibVerifyConstants.STATUS_NIL;
         }
     }
 
     /// @inheritdoc IVerifyV1
-    function accountStatusAtTime(address account_, uint256 timestamp_) external view virtual returns (VerifyStatus) {
-        return statusAtTime(states[account_], timestamp_);
+    function accountStatusAtTime(address account, uint256 timestamp) external view virtual returns (VerifyStatus) {
+        return statusAtTime(sStates[account], timestamp);
     }
 
     /// Requires that `msg.sender` is approved as at the current timestamp.
     modifier onlyApproved() {
-        require(statusAtTime(states[msg.sender], block.timestamp).eq(VerifyConstants.STATUS_APPROVED), "ONLY_APPROVED");
+        require(
+            statusAtTime(sStates[msg.sender], block.timestamp).eq(LibVerifyConstants.STATUS_APPROVED), "ONLY_APPROVED"
+        );
         _;
     }
 
     /// @dev Builds a new `State` for use by `add` and `approve`.
-    function newState() private view returns (State memory state_) {
-        state_ = State(uint32(block.timestamp), UNINITIALIZED, UNINITIALIZED);
+    function newState() private view returns (State memory) {
+        return State(uint32(block.timestamp), UNINITIALIZED, UNINITIALIZED);
     }
 
     /// An account adds their own verification evidence.
     /// Internally `msg.sender` is used; delegated `add` is not supported.
-    /// @param data_ The evidence to support approving the `msg.sender`.
-    function add(bytes calldata data_) external {
-        State memory state_ = states[msg.sender];
-        VerifyStatus currentStatus_ = statusAtTime(state_, block.timestamp);
+    /// @param data The evidence to support approving the `msg.sender`.
+    function add(bytes calldata data) external {
+        State memory lState = sStates[msg.sender];
+        VerifyStatus currentStatus = statusAtTime(lState, block.timestamp);
         require(
-            !currentStatus_.eq(VerifyConstants.STATUS_APPROVED) && !currentStatus_.eq(VerifyConstants.STATUS_BANNED),
+            !currentStatus.eq(LibVerifyConstants.STATUS_APPROVED) && !currentStatus.eq(LibVerifyConstants.STATUS_BANNED),
             "ALREADY_EXISTS"
         );
         // An account that hasn't already been added need a new state.
@@ -363,21 +364,21 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
         // provider, e.g. to implement a commit+reveal scheme or simply
         // request additional evidence from the applicant before final
         // verdict.
-        if (currentStatus_.eq(VerifyConstants.STATUS_NIL)) {
-            states[msg.sender] = newState();
+        if (currentStatus.eq(LibVerifyConstants.STATUS_NIL)) {
+            sStates[msg.sender] = newState();
         }
-        Evidence memory evidence_ = Evidence(msg.sender, data_);
-        emit RequestApprove(msg.sender, evidence_);
+        Evidence memory evidence = Evidence(msg.sender, data);
+        emit RequestApprove(msg.sender, evidence);
 
-        // Call the `afterAdd_` hook to allow inheriting contracts to enforce
+        // Call the `afterAdd` hook to allow inheriting contracts to enforce
         // requirements.
         // The inheriting contract MUST `require` or otherwise enforce its
         // needs to rollback a bad add.
-        IVerifyCallbackV1 callback_ = callback;
-        if (address(callback_) != address(0)) {
-            Evidence[] memory evidences_ = new Evidence[](1);
-            evidences_[0] = evidence_;
-            callback_.afterAdd(msg.sender, evidences_);
+        IVerifyCallbackV1 callback = sCallback;
+        if (address(callback) != address(0)) {
+            Evidence[] memory evidences = new Evidence[](1);
+            evidences[0] = evidence;
+            callback.afterAdd(msg.sender, evidences);
         }
     }
 
@@ -394,25 +395,25 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     /// be seen as banned when calling `statusAtTime` regardless of the
     /// approval time, even if the approval is more recent than the ban. The
     /// only way to reset a ban is to remove and reapprove the account.
-    /// @param evidences_ All evidence for all approvals.
-    function approve(Evidence[] memory evidences_) external onlyRole(APPROVER) {
+    /// @param evidences All evidence for all approvals.
+    function approve(Evidence[] memory evidences) external onlyRole(APPROVER) {
         unchecked {
-            State memory state_;
-            uint256[] memory addedRefs_ = new uint256[](evidences_.length);
-            uint256[] memory approvedRefs_ = new uint256[](evidences_.length);
-            uint256 additions_ = 0;
-            uint256 approvals_ = 0;
+            State memory lState;
+            uint256[] memory addedRefs = new uint256[](evidences.length);
+            uint256[] memory approvedRefs = new uint256[](evidences.length);
+            uint256 additions = 0;
+            uint256 approvals = 0;
 
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                Evidence memory evidence_ = evidences_[i_];
-                state_ = states[evidence_.account];
+            for (uint256 i = 0; i < evidences.length; i++) {
+                Evidence memory evidence = evidences[i];
+                lState = sStates[evidence.account];
                 // If the account hasn't been added an approver can still add
                 // and approve it on their behalf.
-                if (state_.addedSince < 1) {
-                    state_ = newState();
+                if (lState.addedSince < 1) {
+                    lState = newState();
 
-                    LibEvidence._updateEvidenceRef(addedRefs_, evidence_, additions_);
-                    additions_++;
+                    LibEvidence._updateEvidenceRef(addedRefs, evidence, additions);
+                    additions++;
                 }
                 // If the account hasn't been approved we approve it. As there
                 // are many approvers operating independently and concurrently
@@ -423,28 +424,28 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
                 // It is possible to approve a banned account but
                 // `statusAtTime` will ignore the approval time for any banned
                 // account and use the banned time only.
-                if (state_.approvedSince == UNINITIALIZED) {
-                    state_.approvedSince = uint32(block.timestamp);
-                    states[evidence_.account] = state_;
+                if (lState.approvedSince == UNINITIALIZED) {
+                    lState.approvedSince = uint32(block.timestamp);
+                    sStates[evidence.account] = lState;
 
-                    LibEvidence._updateEvidenceRef(approvedRefs_, evidence_, approvals_);
-                    approvals_++;
+                    LibEvidence._updateEvidenceRef(approvedRefs, evidence, approvals);
+                    approvals++;
                 }
 
                 // Always emit an `Approve` event even if we didn't write to
                 // storage. This ensures that supporting evidence hits the logs
                 // for offchain review.
-                emit Approve(msg.sender, evidence_);
+                emit Approve(msg.sender, evidence);
             }
-            IVerifyCallbackV1 callback_ = callback;
-            if (address(callback_) != address(0)) {
-                if (additions_ > 0) {
-                    addedRefs_.truncate(additions_);
-                    callback_.afterAdd(msg.sender, addedRefs_.asEvidences());
+            IVerifyCallbackV1 callback = sCallback;
+            if (address(callback) != address(0)) {
+                if (additions > 0) {
+                    addedRefs.truncate(additions);
+                    callback.afterAdd(msg.sender, addedRefs.asEvidences());
                 }
-                if (approvals_ > 0) {
-                    approvedRefs_.truncate(approvals_);
-                    callback_.afterApprove(msg.sender, approvedRefs_.asEvidences());
+                if (approvals > 0) {
+                    approvedRefs.truncate(approvals);
+                    callback.afterApprove(msg.sender, approvedRefs.asEvidences());
                 }
             }
         }
@@ -452,62 +453,62 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// Any approved address can request some address be approved.
     /// Frivolous requestors SHOULD expect to find themselves banned.
-    /// @param evidences_ Array of evidences to request approvals for.
-    function requestApprove(Evidence[] calldata evidences_) external onlyApproved {
+    /// @param evidences Array of evidences to request approvals for.
+    function requestApprove(Evidence[] calldata evidences) external onlyApproved {
         unchecked {
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                emit RequestApprove(msg.sender, evidences_[i_]);
+            for (uint256 i = 0; i < evidences.length; i++) {
+                emit RequestApprove(msg.sender, evidences[i]);
             }
         }
     }
 
     /// A `BANNER` can ban an added OR approved account.
-    /// @param evidences_ All evidence appropriate for all bans.
-    function ban(Evidence[] calldata evidences_) external onlyRole(BANNER) {
+    /// @param evidences All evidence appropriate for all bans.
+    function ban(Evidence[] calldata evidences) external onlyRole(BANNER) {
         unchecked {
-            State memory state_;
-            uint256[] memory addedRefs_ = new uint256[](evidences_.length);
-            uint256[] memory bannedRefs_ = new uint256[](evidences_.length);
-            uint256 additions_ = 0;
-            uint256 bans_ = 0;
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                Evidence memory evidence_ = evidences_[i_];
-                state_ = states[evidence_.account];
+            State memory lState;
+            uint256[] memory addedRefs = new uint256[](evidences.length);
+            uint256[] memory bannedRefs = new uint256[](evidences.length);
+            uint256 additions = 0;
+            uint256 bans = 0;
+            for (uint256 i = 0; i < evidences.length; i++) {
+                Evidence memory evidence = evidences[i];
+                lState = sStates[evidence.account];
 
                 // There is no requirement that an account be formerly added
                 // before it is banned. For example some fraud may be detected
                 // in an affiliated `Verify` contract and the evidence can be
                 // used to ban the same address in the current contract. In
                 // this case the account will be added and banned in this call.
-                if (state_.addedSince < 1) {
-                    state_ = newState();
+                if (lState.addedSince < 1) {
+                    lState = newState();
 
-                    LibEvidence._updateEvidenceRef(addedRefs_, evidence_, additions_);
-                    additions_++;
+                    LibEvidence._updateEvidenceRef(addedRefs, evidence, additions);
+                    additions++;
                 }
                 // Respect prior bans by leaving onchain storage as-is.
-                if (state_.bannedSince == UNINITIALIZED) {
-                    state_.bannedSince = uint32(block.timestamp);
-                    states[evidence_.account] = state_;
+                if (lState.bannedSince == UNINITIALIZED) {
+                    lState.bannedSince = uint32(block.timestamp);
+                    sStates[evidence.account] = lState;
 
-                    LibEvidence._updateEvidenceRef(bannedRefs_, evidence_, bans_);
-                    bans_++;
+                    LibEvidence._updateEvidenceRef(bannedRefs, evidence, bans);
+                    bans++;
                 }
 
                 // Always emit a `Ban` event even if we didn't write state. This
                 // ensures that supporting evidence hits the logs for offchain
                 // review.
-                emit Ban(msg.sender, evidence_);
+                emit Ban(msg.sender, evidence);
             }
-            IVerifyCallbackV1 callback_ = callback;
-            if (address(callback_) != address(0)) {
-                if (additions_ > 0) {
-                    addedRefs_.truncate(additions_);
-                    callback_.afterAdd(msg.sender, addedRefs_.asEvidences());
+            IVerifyCallbackV1 callback = sCallback;
+            if (address(callback) != address(0)) {
+                if (additions > 0) {
+                    addedRefs.truncate(additions);
+                    callback.afterAdd(msg.sender, addedRefs.asEvidences());
                 }
-                if (bans_ > 0) {
-                    bannedRefs_.truncate(bans_);
-                    callback_.afterBan(msg.sender, bannedRefs_.asEvidences());
+                if (bans > 0) {
+                    bannedRefs.truncate(bans);
+                    callback.afterBan(msg.sender, bannedRefs.asEvidences());
                 }
             }
         }
@@ -515,11 +516,11 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// Any approved address can request some address be banned.
     /// Frivolous requestors SHOULD expect to find themselves banned.
-    /// @param evidences_ Array of evidences to request banning for.
-    function requestBan(Evidence[] calldata evidences_) external onlyApproved {
+    /// @param evidences Array of evidences to request banning for.
+    function requestBan(Evidence[] calldata evidences) external onlyApproved {
         unchecked {
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                emit RequestBan(msg.sender, evidences_[i_]);
+            for (uint256 i = 0; i < evidences.length; i++) {
+                emit RequestBan(msg.sender, evidences[i]);
             }
         }
     }
@@ -527,27 +528,27 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     /// A `REMOVER` can scrub state mapping from an account.
     /// A malicious account MUST be banned rather than removed.
     /// Removal is useful to reset the whole process in case of some mistake.
-    /// @param evidences_ All evidence to suppor the removal.
-    function remove(Evidence[] memory evidences_) external onlyRole(REMOVER) {
+    /// @param evidences All evidence to suppor the removal.
+    function remove(Evidence[] memory evidences) external onlyRole(REMOVER) {
         unchecked {
-            State memory state_;
-            uint256[] memory removedRefs_ = new uint256[](evidences_.length);
-            uint256 removals_ = 0;
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                Evidence memory evidence_ = evidences_[i_];
-                state_ = states[evidences_[i_].account];
-                if (state_.addedSince > 0) {
-                    delete (states[evidence_.account]);
-                    LibEvidence._updateEvidenceRef(removedRefs_, evidence_, removals_);
-                    removals_++;
+            State memory lState;
+            uint256[] memory removedRefs = new uint256[](evidences.length);
+            uint256 removals = 0;
+            for (uint256 i = 0; i < evidences.length; i++) {
+                Evidence memory evidence = evidences[i];
+                lState = sStates[evidences[i].account];
+                if (lState.addedSince > 0) {
+                    delete (sStates[evidence.account]);
+                    LibEvidence._updateEvidenceRef(removedRefs, evidence, removals);
+                    removals++;
                 }
-                emit Remove(msg.sender, evidence_);
+                emit Remove(msg.sender, evidence);
             }
-            IVerifyCallbackV1 callback_ = callback;
-            if (address(callback_) != address(0)) {
-                if (removals_ > 0) {
-                    removedRefs_.truncate(removals_);
-                    callback_.afterRemove(msg.sender, removedRefs_.asEvidences());
+            IVerifyCallbackV1 callback = sCallback;
+            if (address(callback) != address(0)) {
+                if (removals > 0) {
+                    removedRefs.truncate(removals);
+                    callback.afterRemove(msg.sender, removedRefs.asEvidences());
                 }
             }
         }
@@ -555,11 +556,11 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// Any approved address can request some address be removed.
     /// Frivolous requestors SHOULD expect to find themselves banned.
-    /// @param evidences_ Array of evidences to request removal of.
-    function requestRemove(Evidence[] calldata evidences_) external onlyApproved {
+    /// @param evidences Array of evidences to request removal of.
+    function requestRemove(Evidence[] calldata evidences) external onlyApproved {
         unchecked {
-            for (uint256 i_ = 0; i_ < evidences_.length; i_++) {
-                emit RequestRemove(msg.sender, evidences_[i_]);
+            for (uint256 i = 0; i < evidences.length; i++) {
+                emit RequestRemove(msg.sender, evidences[i]);
             }
         }
     }

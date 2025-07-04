@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: CAL
 pragma solidity ^0.8.25;
 
-import "../IVerifyV1.sol";
+import {VerifyStatus} from "../interface/IVerifyV1.sol";
 
 /// Summary statuses derived from a `State` by comparing the `Since` times
 /// against a specific block number.
-library VerifyConstants {
+library LibVerifyConstants {
     /// Account has not interacted with the system yet or was removed.
     VerifyStatus internal constant STATUS_NIL = VerifyStatus.wrap(0);
     /// Account has added evidence for themselves.
