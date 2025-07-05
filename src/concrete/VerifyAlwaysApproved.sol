@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: CAL
+// SPDX-License-Identifier: LicenseRef-DCL-1.0
+// SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
 import {IVerifyV1, VerifyStatus, VERIFY_STATUS_APPROVED} from "src/interface/IVerifyV1.sol";
@@ -9,11 +10,9 @@ import {IVerifyV1, VerifyStatus, VERIFY_STATUS_APPROVED} from "src/interface/IVe
 /// be used as a "no-op" verifier that approves all accounts without any
 /// conditions or checks.
 contract VerifyAlwaysApproved is IVerifyV1 {
-    /// @notice Always returns `VERIFY_STATUS_APPROVED` for any account.
-    /// @param account The account to check the status of.
-    /// @param timestamp The timestamp to check the status at.
-    /// @return The status of the account at the given timestamp.
-    function accountStatusAtTime(address account, uint256 timestamp) external pure override returns (VerifyStatus) {
+    /// Always returns `VERIFY_STATUS_APPROVED` for any account.
+    /// @inheritdoc IVerifyV1
+    function accountStatusAtTime(address, uint256) external pure override returns (VerifyStatus) {
         return VERIFY_STATUS_APPROVED;
     }
 }
