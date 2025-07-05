@@ -317,18 +317,22 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
         // a `<=` equality they would incorrectly return `true` always due to
         // also having a `0` fallback value.
         // Using `< 1` here to silence slither.
+        // slither-disable-next-line timestamp
         if (lState.addedSince < 1) {
             status = VERIFY_STATUS_NIL;
         }
         // Banned takes priority over everything.
+        // slither-disable-next-line timestamp
         else if (lState.bannedSince <= timestamp) {
             status = VERIFY_STATUS_BANNED;
         }
         // Approved takes priority over added.
+        // slither-disable-next-line timestamp
         else if (lState.approvedSince <= timestamp) {
             status = VERIFY_STATUS_APPROVED;
         }
         // Added is lowest priority.
+        // slither-disable-next-line timestamp
         else if (lState.addedSince <= timestamp) {
             status = VERIFY_STATUS_ADDED;
         }
@@ -433,7 +437,11 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
                 // It is possible to approve a banned account but
                 // `statusAtTime` will ignore the approval time for any banned
                 // account and use the banned time only.
+                // slither-disable-start timestamp
+                // slither-disable-start incorrect-equality
                 if (lState.approvedSince == UNINITIALIZED) {
+                    // slither-disable-end incorrect-equality
+                    // slither-disable-end timestamp
                     lState.approvedSince = uint32(block.timestamp);
                     sStates[evidence.account] = lState;
 
@@ -496,7 +504,11 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
                     additions++;
                 }
                 // Respect prior bans by leaving onchain storage as-is.
+                //slither-disable-start timestamp
+                // slither-disable-start incorrect-equality
                 if (lState.bannedSince == UNINITIALIZED) {
+                    // slither-disable-end incorrect-equality
+                    // slither-disable-end timestamp
                     lState.bannedSince = uint32(block.timestamp);
                     sStates[evidence.account] = lState;
 
