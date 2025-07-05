@@ -3,10 +3,16 @@ pragma solidity =0.8.25;
 
 import {AccessControlUpgradeable as AccessControl} from
     "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
-import {LibVerifyConstants} from "../lib/LibVerifyConstants.sol";
 import {LibEvidence} from "../lib/LibEvidence.sol";
 import {LibUint256Array} from "rain.solmem/lib/LibUint256Array.sol";
-import {IVerifyV1, Evidence} from "../interface/IVerifyV1.sol";
+import {
+    IVerifyV1,
+    Evidence,
+    VERIFY_STATUS_NIL,
+    VERIFY_STATUS_APPROVED,
+    VERIFY_STATUS_ADDED,
+    VERIFY_STATUS_BANNED
+} from "../interface/IVerifyV1.sol";
 import {IVerifyCallbackV1} from "../interface/IVerifyCallbackV1.sol";
 import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
@@ -311,24 +317,24 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
         // also having a `0` fallback value.
         // Using `< 1` here to silence slither.
         if (lState.addedSince < 1) {
-            status = LibVerifyConstants.STATUS_NIL;
+            status = VERIFY_STATUS_NIL;
         }
         // Banned takes priority over everything.
         else if (lState.bannedSince <= timestamp) {
-            status = LibVerifyConstants.STATUS_BANNED;
+            status = VERIFY_STATUS_BANNED;
         }
         // Approved takes priority over added.
         else if (lState.approvedSince <= timestamp) {
-            status = LibVerifyConstants.STATUS_APPROVED;
+            status = VERIFY_STATUS_APPROVED;
         }
         // Added is lowest priority.
         else if (lState.addedSince <= timestamp) {
-            status = LibVerifyConstants.STATUS_ADDED;
+            status = VERIFY_STATUS_ADDED;
         }
         // The `addedSince` time is after `timestamp` so `Status` is nil
         // relative to `timestamp`.
         else {
-            status = LibVerifyConstants.STATUS_NIL;
+            status = VERIFY_STATUS_NIL;
         }
     }
 
@@ -339,7 +345,7 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// Requires that `msg.sender` is approved as at the current timestamp.
     modifier onlyApproved() {
-        if (!statusAtTime(sStates[msg.sender], block.timestamp).eq(LibVerifyConstants.STATUS_APPROVED)) {
+        if (!statusAtTime(sStates[msg.sender], block.timestamp).eq(VERIFY_STATUS_APPROVED)) {
             revert NotApproved();
         }
         _;
@@ -356,8 +362,7 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     function add(bytes calldata data) external {
         State memory lState = sStates[msg.sender];
         VerifyStatus currentStatus = statusAtTime(lState, block.timestamp);
-        if (currentStatus.eq(LibVerifyConstants.STATUS_APPROVED) && !currentStatus.eq(LibVerifyConstants.STATUS_BANNED))
-        {
+        if (currentStatus.eq(VERIFY_STATUS_APPROVED) && !currentStatus.eq(VERIFY_STATUS_BANNED)) {
             revert AlreadyExists();
         }
         // An account that hasn't already been added need a new state.
@@ -367,7 +372,7 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
         // provider, e.g. to implement a commit+reveal scheme or simply
         // request additional evidence from the applicant before final
         // verdict.
-        if (currentStatus.eq(LibVerifyConstants.STATUS_NIL)) {
+        if (currentStatus.eq(VERIFY_STATUS_NIL)) {
             sStates[msg.sender] = newState();
         }
         Evidence memory evidence = Evidence(msg.sender, data);
