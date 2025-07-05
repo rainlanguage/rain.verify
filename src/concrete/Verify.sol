@@ -559,6 +559,10 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
                 Evidence memory evidence = evidences[i];
                 lState = sStates[evidences[i].account];
                 if (lState.addedSince > 0) {
+                    // delete is considered a costly operation by slither, but
+                    // it could result in a gas refund. Either way it needs to
+                    // happen, so we ignore the warning.
+                    // slither-disable-next-line costly-loop
                     delete (sStates[evidence.account]);
                     LibEvidence._updateEvidenceRef(removedRefs, evidence, removals);
                     removals++;

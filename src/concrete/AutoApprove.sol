@@ -76,12 +76,26 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
             bytes32[][] memory context = new bytes32[][](1);
             context[0] = new bytes32[](2);
             EvaluableV4 memory evaluable = sEvaluable;
+
             for (uint256 i = 0; i < evidences.length; i++) {
                 // Currently we only support 32 byte evidence for auto approve.
                 if (evidences[i].data.length == 0x20) {
                     context[0][0] = bytes32(uint256(uint160(evidences[i].account)));
                     context[0][1] = bytes32(evidences[i].data);
+                    // Slither complains about this event coming after the set
+                    // as it could be reentrant and confuse the ordering of
+                    // events. In general this may be the case but specifically
+                    // here we trust the store contract and the standard
+                    // implementation doesn't reenter the caller upon set.
+                    // slither-disable-next-line reentrancy-events
                     emit ContextV2(msg.sender, context);
+                    // Slither doesn't like this because it involves external calls in a
+                    // loop, where any revert will prevent the entire transaction. In
+                    // this case the caller has control over the list of evidences
+                    // and can ensure that the evidence is valid, so we can safely ignore
+                    // this warning. At the least the caller can remove bad evidence and
+                    // try again.
+                    // slither-disable-next-line calls-loop
                     (StackItem[] memory stack, bytes32[] memory kvs) = evaluable.interpreter.eval4(
                         EvalV4({
                             store: evaluable.store,
@@ -98,6 +112,8 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
                         approvals++;
                     }
                     if (kvs.length > 0) {
+                        // Same as the eval.
+                        // slither-disable-next-line calls-loop
                         evaluable.store.set(DEFAULT_STATE_NAMESPACE, kvs);
                     }
                 }
