@@ -504,11 +504,8 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
                     additions++;
                 }
                 // Respect prior bans by leaving onchain storage as-is.
-                //slither-disable-start timestamp
-                // slither-disable-start incorrect-equality
+                //slither-disable-next-line timestamp,incorrect-equality
                 if (lState.bannedSince == UNINITIALIZED) {
-                    // slither-disable-end incorrect-equality
-                    // slither-disable-end timestamp
                     lState.bannedSince = uint32(block.timestamp);
                     sStates[evidence.account] = lState;
 
