@@ -10,6 +10,7 @@ optimizer_runs = 100000
 evm_version = "paris"
 
 remappings = [
+    "forge-std/=lib/rain.verify.interface/lib/forge-std/src/",
     "rain.factory/=lib/rain.factory/src/",
     "rain.interpreter.interface/=lib/rain.interpreter.interface/src/",
     "rain.verify.interface/=lib/rain.verify.interface/src/",
