@@ -13,3 +13,6 @@
 [submodule "lib/rain.solmem"]
 	path = lib/rain.solmem
 	url = https://github.com/rainlanguage/rain.solmem
+[submodule "lib/rain.verify.interface"]
+	path = lib/rain.verify.interface
+	url = https://github.com/rainlanguage/rain.verify.interface

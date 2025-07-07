@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity ^0.8.25;
 
-import {Evidence} from "../interface/IVerifyV1.sol";
+import {Evidence} from "rain.verify.interface/interface/IVerifyV1.sol";
 
 library LibEvidence {
     function _updateEvidenceRef(uint256[] memory refs, Evidence memory evidence, uint256 refsIndex) internal pure {

@@ -13,8 +13,8 @@ import {
     VERIFY_STATUS_APPROVED,
     VERIFY_STATUS_ADDED,
     VERIFY_STATUS_BANNED
-} from "../interface/IVerifyV1.sol";
-import {IVerifyCallbackV1} from "../interface/IVerifyCallbackV1.sol";
+} from "rain.verify.interface/interface/IVerifyV1.sol";
+import {IVerifyCallbackV1} from "rain.verify.interface/interface/IVerifyCallbackV1.sol";
 import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
 import {ZeroAdmin, NotApproved, AlreadyExists} from "../err/ErrVerify.sol";

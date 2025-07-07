@@ -12,6 +12,7 @@ evm_version = "paris"
 remappings = [
     "rain.factory/=lib/rain.factory/src/",
     "rain.interpreter.interface/=lib/rain.interpreter.interface/src/",
+    "rain.verify.interface/=lib/rain.verify.interface/src/",
 ]
 
 bytecode_hash = "none"
