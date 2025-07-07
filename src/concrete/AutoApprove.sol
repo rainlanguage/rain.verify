@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {Evidence} from "../interface/IVerifyV1.sol";
+import {Evidence} from "rain.verify.interface/interface/IVerifyV1.sol";
 import {LibEvidence} from "../lib/LibEvidence.sol";
 import {Verify} from "./Verify.sol";
 import {VerifyCallback} from "../abstract/VerifyCallback.sol";

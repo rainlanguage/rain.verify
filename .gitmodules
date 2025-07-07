@@ -1,6 +1,3 @@
-[submodule "lib/forge-std"]
-	path = lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
 [submodule "lib/rain.interpreter.interface"]
 	path = lib/rain.interpreter.interface
 	url = https://github.com/rainlanguage/rain.interpreter.interface
@@ -13,3 +10,6 @@
 [submodule "lib/rain.solmem"]
 	path = lib/rain.solmem
 	url = https://github.com/rainlanguage/rain.solmem
+[submodule "lib/rain.verify.interface"]
+	path = lib/rain.verify.interface
+	url = https://github.com/rainlanguage/rain.verify.interface

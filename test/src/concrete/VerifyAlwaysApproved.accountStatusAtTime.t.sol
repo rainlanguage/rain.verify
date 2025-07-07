@@ -5,7 +5,7 @@ pragma solidity =0.8.25;
 import {Test} from "forge-std/Test.sol";
 
 import {VerifyAlwaysApproved} from "src/concrete/VerifyAlwaysApproved.sol";
-import {VerifyStatus, VERIFY_STATUS_APPROVED} from "src/interface/IVerifyV1.sol";
+import {VerifyStatus, VERIFY_STATUS_APPROVED} from "rain.verify.interface/interface/IVerifyV1.sol";
 
 contract VerifyAlwaysApprovedAccountStatusAtTimeTest is Test {
     function testAccountStatusAtTime(address account, uint256 timestamp) external {

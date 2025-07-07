@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {IVerifyV1, VerifyStatus, VERIFY_STATUS_APPROVED} from "src/interface/IVerifyV1.sol";
+import {IVerifyV1, VerifyStatus, VERIFY_STATUS_APPROVED} from "rain.verify.interface/interface/IVerifyV1.sol";
 
 /// @title VerifyAlwaysApproved
 /// @notice A concrete implementation of `IVerifyV1` that always returns

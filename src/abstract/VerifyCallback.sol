@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity ^0.8.25;
 
-import {IVerifyCallbackV1, Evidence} from "../interface/IVerifyCallbackV1.sol";
+import {IVerifyCallbackV1, Evidence} from "rain.verify.interface/interface/IVerifyCallbackV1.sol";
 import {OwnableUpgradeable as Ownable} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
 /// @title VerifyCallback
