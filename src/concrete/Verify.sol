@@ -196,6 +196,8 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     uint32 private constant UNINITIALIZED = type(uint32).max;
 
     /// Emitted when the `Verify` contract is initialized.
+    /// @param sender The `msg.sender` that initialized the contract.
+    /// @param config The initialization config.
     event Initialize(address sender, VerifyConfig config);
 
     /// Emitted when evidence is first submitted to approve an account.
@@ -303,6 +305,7 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// Typed accessor into states.
     /// @param account The account to return the current `State` for.
+    /// @return The current `State` for the given account.
     function state(address account) external view returns (State memory) {
         return sStates[account];
     }
@@ -363,6 +366,11 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// An account adds their own verification evidence.
     /// Internally `msg.sender` is used; delegated `add` is not supported.
+    /// Only NIL and ADDED accounts may call `add`. APPROVED accounts revert
+    /// with `AlreadyExists`. BANNED accounts revert with `AlreadyExists`
+    /// because they must appeal to a `REMOVER` via `requestRemove` instead.
+    /// ADDED accounts may call `add` multiple times to submit new evidence
+    /// without changing their state.
     /// @param data The evidence to support approving the `msg.sender`.
     function add(bytes calldata data) external {
         State memory lState = sStates[msg.sender];
@@ -546,7 +554,7 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     /// A `REMOVER` can scrub state mapping from an account.
     /// A malicious account MUST be banned rather than removed.
     /// Removal is useful to reset the whole process in case of some mistake.
-    /// @param evidences All evidence to suppor the removal.
+    /// @param evidences All evidence to support the removal.
     function remove(Evidence[] memory evidences) external onlyRole(REMOVER) {
         unchecked {
             State memory lState;

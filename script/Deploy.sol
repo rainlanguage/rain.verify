@@ -4,12 +4,12 @@ pragma solidity =0.8.25;
 
 import {Script} from "forge-std/Script.sol";
 
-import {Verify} from "src/concrete/Verify.sol";
+import {Verify} from "../src/concrete/Verify.sol";
 
 bytes32 constant DEPLOYMENT_SUITE_IMPLEMENTATIONS = keccak256("implementations");
 
 /// @title Deploy
-/// This is intended to be run on every commit by CI to a testnet such as mumbai,
+/// This is intended to be run on every commit by CI to a testnet,
 /// then cross chain deployed to whatever mainnet is required, by users.
 contract Deploy is Script {
     function deployImplementations(uint256 deploymentKey) internal {

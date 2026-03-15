@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {Test} from "forge-std/Test.sol";
-import {AutoApprove, AutoApproveConfig} from "../src/concrete/AutoApprove.sol";
+import {Test, Vm} from "forge-std/Test.sol";
+import {AutoApprove, AutoApproveConfig, BadEvidenceLength} from "../src/concrete/AutoApprove.sol";
 import {Verify, VerifyConfig} from "../src/concrete/Verify.sol";
 import {
     Evidence,
@@ -33,20 +33,26 @@ import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy
 /// encoding is identical so the caller (AutoApprove) can decode the response
 /// through the interface pointer without issue.
 contract MockInterpreterV4 {
-    /// @dev The value that will be returned as the sole stack item.
-    StackItem public sReturnValue;
+    /// @dev The stack to return from `eval4`.
+    StackItem[] public sStack;
 
-    /// @dev Set the return value for subsequent `eval4` calls.
-    /// @param value The stack item to return.
-    function setReturnValue(StackItem value) external {
-        sReturnValue = value;
+    /// @dev Set the stack that `eval4` will return.
+    function setStack(StackItem[] memory stack) external {
+        delete sStack;
+        for (uint256 i = 0; i < stack.length; i++) {
+            sStack.push(stack[i]);
+        }
     }
 
-    /// @dev Matches the `eval4` selector from `IInterpreterV4`. Returns a
-    /// single-element stack containing `sReturnValue` and an empty kvs array.
+    /// @dev Convenience to set a single-element stack.
+    function setReturnValue(StackItem value) external {
+        delete sStack;
+        sStack.push(value);
+    }
+
+    /// @dev Matches the `eval4` selector from `IInterpreterV4`.
     function eval4(EvalV4 calldata) external view returns (StackItem[] memory stack, bytes32[] memory kvs) {
-        stack = new StackItem[](1);
-        stack[0] = sReturnValue;
+        stack = sStack;
         kvs = new bytes32[](0);
     }
 }
@@ -97,6 +103,27 @@ contract AutoApproveTest is Test {
         address clone = Clones.clone(address(I_VERIFY_IMPLEMENTATION));
         ICloneableV2(clone).initialize(abi.encode(VerifyConfig(admin, callback)));
         return Verify(clone);
+    }
+
+    /// @dev Helper to deploy AutoApprove + Verify wired together with a
+    /// default mock evaluable.
+    function _deployIntegration()
+        internal
+        returns (AutoApprove autoApprove, Verify verify)
+    {
+        (MockInterpreterV4 interpreter, EvaluableV4 memory evaluable) = _createMockEvaluable();
+        interpreter.setReturnValue(StackItem.wrap(bytes32(uint256(1))));
+
+        address autoApproveClone = Clones.clone(address(I_AUTO_APPROVE_IMPLEMENTATION));
+        AutoApproveConfig memory config = AutoApproveConfig({owner: address(this), evaluable: evaluable});
+        ICloneableV2(autoApproveClone).initialize(abi.encode(config));
+        autoApprove = AutoApprove(autoApproveClone);
+
+        verify = _deployVerify(ADMIN, address(autoApprove));
+        autoApprove.transferOwnership(address(verify));
+
+        vm.prank(ADMIN);
+        verify.grantRole(APPROVER_ROLE, address(autoApprove));
     }
 
     /// @dev Helper to create a standard mock evaluable (interpreter + store).
@@ -218,83 +245,37 @@ contract AutoApproveTest is Test {
         assertTrue(verify.accountStatusAtTime(account, block.timestamp).eq(VERIFY_STATUS_ADDED));
     }
 
-    /// Evidence with data length != 32 bytes MUST be silently skipped by
-    /// `afterAdd`. The interpreter is never called for such evidence and no
-    /// approval occurs.
-    function testAfterAddSkipsNon32ByteEvidence(address account) external {
+    /// Evidence with data length of 0 bytes MUST revert.
+    function testAfterAddRevertsEmptyEvidence(address account) external {
         vm.assume(account != address(0));
 
-        (MockInterpreterV4 interpreter, EvaluableV4 memory evaluable) = _createMockEvaluable();
-        // Set interpreter to approve everything, so if it WERE called it would approve.
-        interpreter.setReturnValue(StackItem.wrap(bytes32(uint256(1))));
+        (, Verify verify) = _deployIntegration();
 
-        address autoApproveClone = Clones.clone(address(I_AUTO_APPROVE_IMPLEMENTATION));
-        AutoApproveConfig memory config = AutoApproveConfig({owner: address(this), evaluable: evaluable});
-        ICloneableV2(autoApproveClone).initialize(abi.encode(config));
-        AutoApprove autoApprove = AutoApprove(autoApproveClone);
-
-        Verify verify = _deployVerify(ADMIN, address(autoApprove));
-        autoApprove.transferOwnership(address(verify));
-
-        vm.prank(ADMIN);
-        verify.grantRole(APPROVER_ROLE, address(autoApprove));
-
-        // Add with 0 bytes of evidence data (not 32).
         vm.prank(account);
+        vm.expectRevert(abi.encodeWithSelector(BadEvidenceLength.selector, 0));
         verify.add(hex"");
-
-        // Account should be ADDED, not APPROVED, since evidence was skipped.
-        assertTrue(verify.accountStatusAtTime(account, block.timestamp).eq(VERIFY_STATUS_ADDED));
     }
 
-    /// Evidence with data length of 31 bytes MUST be silently skipped.
-    function testAfterAddSkips31ByteEvidence(address account) external {
+    /// Evidence with data length of 31 bytes MUST revert.
+    function testAfterAddReverts31ByteEvidence(address account) external {
         vm.assume(account != address(0));
 
-        (MockInterpreterV4 interpreter, EvaluableV4 memory evaluable) = _createMockEvaluable();
-        interpreter.setReturnValue(StackItem.wrap(bytes32(uint256(1))));
+        (, Verify verify) = _deployIntegration();
 
-        address autoApproveClone = Clones.clone(address(I_AUTO_APPROVE_IMPLEMENTATION));
-        AutoApproveConfig memory config = AutoApproveConfig({owner: address(this), evaluable: evaluable});
-        ICloneableV2(autoApproveClone).initialize(abi.encode(config));
-        AutoApprove autoApprove = AutoApprove(autoApproveClone);
-
-        Verify verify = _deployVerify(ADMIN, address(autoApprove));
-        autoApprove.transferOwnership(address(verify));
-
-        vm.prank(ADMIN);
-        verify.grantRole(APPROVER_ROLE, address(autoApprove));
-
-        // 31 bytes: not exactly 32, so should be skipped.
         vm.prank(account);
+        vm.expectRevert(abi.encodeWithSelector(BadEvidenceLength.selector, 31));
         verify.add(hex"00112233445566778899aabbccddeeff00112233445566778899aabbccddee");
-
-        assertTrue(verify.accountStatusAtTime(account, block.timestamp).eq(VERIFY_STATUS_ADDED));
     }
 
-    /// Evidence with data length of 33 bytes MUST be silently skipped.
-    function testAfterAddSkips33ByteEvidence(address account) external {
+    /// Evidence with data length of 33 bytes MUST revert.
+    function testAfterAddReverts33ByteEvidence(address account) external {
         vm.assume(account != address(0));
 
-        (MockInterpreterV4 interpreter, EvaluableV4 memory evaluable) = _createMockEvaluable();
-        interpreter.setReturnValue(StackItem.wrap(bytes32(uint256(1))));
+        (, Verify verify) = _deployIntegration();
 
-        address autoApproveClone = Clones.clone(address(I_AUTO_APPROVE_IMPLEMENTATION));
-        AutoApproveConfig memory config = AutoApproveConfig({owner: address(this), evaluable: evaluable});
-        ICloneableV2(autoApproveClone).initialize(abi.encode(config));
-        AutoApprove autoApprove = AutoApprove(autoApproveClone);
-
-        Verify verify = _deployVerify(ADMIN, address(autoApprove));
-        autoApprove.transferOwnership(address(verify));
-
-        vm.prank(ADMIN);
-        verify.grantRole(APPROVER_ROLE, address(autoApprove));
-
-        // 33 bytes: not exactly 32, so should be skipped.
         vm.prank(account);
+        vm.expectRevert(abi.encodeWithSelector(BadEvidenceLength.selector, 33));
         verify.add(hex"00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00");
-
-        assertTrue(verify.accountStatusAtTime(account, block.timestamp).eq(VERIFY_STATUS_ADDED));
     }
 
     /// `afterAdd` MUST revert when called by a non-owner (i.e. not the Verify
@@ -386,9 +367,90 @@ contract AutoApproveTest is Test {
         verify.add(abi.encodePacked(evidenceData));
         assertTrue(verify.accountStatusAtTime(account1, block.timestamp).eq(VERIFY_STATUS_APPROVED));
 
-        // account2 adds with non-32-byte evidence => should remain ADDED.
+        // account2 adds with non-32-byte evidence => should revert.
         vm.prank(account2);
+        vm.expectRevert(abi.encodeWithSelector(BadEvidenceLength.selector, 4));
         verify.add(hex"aabbccdd");
-        assertTrue(verify.accountStatusAtTime(account2, block.timestamp).eq(VERIFY_STATUS_ADDED));
+    }
+
+    /// Documents that the afterAdd → Verify.approve → afterApprove callback
+    /// reentrancy path is safe. When AutoApprove.afterAdd calls
+    /// Verify.approve(), Verify triggers callback.afterApprove() back into
+    /// AutoApprove. This is harmless because afterApprove is inherited as a
+    /// no-op from VerifyCallback. The deduplication in Verify.approve() also
+    /// ensures a second approval attempt for the same account is a no-op at
+    /// the state level.
+    ///
+    /// This test verifies:
+    /// 1. The full add→afterAdd→approve→afterApprove chain completes without
+    ///    reverting
+    /// 2. The account reaches APPROVED exactly once (correct final state)
+    /// 3. Exactly one Approve event is emitted (no duplicate from reentrancy)
+    function testAfterAddReentrancySafe(address account, bytes32 evidenceData) external {
+        vm.assume(account != address(0));
+
+        (MockInterpreterV4 interpreter, EvaluableV4 memory evaluable) = _createMockEvaluable();
+        interpreter.setReturnValue(StackItem.wrap(bytes32(uint256(1))));
+
+        address autoApproveClone = Clones.clone(address(I_AUTO_APPROVE_IMPLEMENTATION));
+        AutoApproveConfig memory config = AutoApproveConfig({owner: address(this), evaluable: evaluable});
+        ICloneableV2(autoApproveClone).initialize(abi.encode(config));
+        AutoApprove autoApprove = AutoApprove(autoApproveClone);
+
+        Verify verify = _deployVerify(ADMIN, address(autoApprove));
+        autoApprove.transferOwnership(address(verify));
+
+        vm.prank(ADMIN);
+        verify.grantRole(APPROVER_ROLE, address(autoApprove));
+
+        // Record logs to count Approve events.
+        vm.recordLogs();
+
+        vm.prank(account);
+        verify.add(abi.encodePacked(evidenceData));
+
+        // Account is approved exactly once.
+        assertTrue(verify.accountStatusAtTime(account, block.timestamp).eq(VERIFY_STATUS_APPROVED));
+
+        // Count Approve events to verify no duplicate from reentrancy.
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        bytes32 approveSelector = keccak256("Approve(address,(address,bytes))");
+        uint256 approveCount = 0;
+        for (uint256 i = 0; i < logs.length; i++) {
+            if (logs[i].topics.length > 0 && logs[i].topics[0] == approveSelector) {
+                approveCount++;
+            }
+        }
+        assertEq(approveCount, 1, "expected exactly one Approve event");
+    }
+
+    /// When the interpreter returns an empty stack, `afterAdd` MUST NOT panic
+    /// and MUST NOT approve. The account stays ADDED.
+    function testAfterAddEmptyStackNoApproval(address account, bytes32 evidenceData) external {
+        vm.assume(account != address(0));
+
+        (MockInterpreterV4 interpreter, EvaluableV4 memory evaluable) = _createMockEvaluable();
+        // Override eval4 via vm.mockCall to return an empty stack.
+        vm.mockCall(
+            address(interpreter),
+            abi.encodeWithSelector(MockInterpreterV4.eval4.selector),
+            abi.encode(new StackItem[](0), new bytes32[](0))
+        );
+
+        address autoApproveClone = Clones.clone(address(I_AUTO_APPROVE_IMPLEMENTATION));
+        AutoApproveConfig memory config = AutoApproveConfig({owner: address(this), evaluable: evaluable});
+        ICloneableV2(autoApproveClone).initialize(abi.encode(config));
+        AutoApprove autoApprove = AutoApprove(autoApproveClone);
+
+        Verify verify = _deployVerify(ADMIN, address(autoApprove));
+        autoApprove.transferOwnership(address(verify));
+
+        vm.prank(ADMIN);
+        verify.grantRole(APPROVER_ROLE, address(autoApprove));
+
+        vm.prank(account);
+        verify.add(abi.encodePacked(evidenceData));
+
+        assertTrue(verify.accountStatusAtTime(account, block.timestamp).eq(VERIFY_STATUS_ADDED));
     }
 }

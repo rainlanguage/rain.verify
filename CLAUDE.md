@@ -8,17 +8,19 @@ rain.verify is a Solidity smart contract library for trust-minimized on-chain id
 
 ## Build & Test
 
-All commands require the Nix dev shell. Enter it with `nix develop` first, or prefix commands with `nix develop -c`.
+All commands assume you are in the Nix dev shell (`nix develop`).
 
 ```
-nix develop -c rainix-sol-prelude    # Setup step (run before other tasks)
-nix develop -c rainix-sol-test       # Run Forge tests
-nix develop -c rainix-sol-static     # Slither static analysis
-nix develop -c rainix-sol-legal      # License compliance check
+rainix-sol-prelude    # Setup step (run before other tasks)
+rainix-sol-test       # Run Forge tests
+rainix-sol-static     # Slither static analysis
+rainix-sol-legal      # License compliance check
 ```
 
-Single test: `nix develop -c forge test --match-test testFunctionName`
-Single contract: `nix develop -c forge test --match-contract ContractName`
+Run `rainix-sol-prelude` before first test run, then:
+
+Single test: `forge test --match-test testFunctionName`
+Single contract: `forge test --match-contract ContractName`
 
 ## Architecture
 
