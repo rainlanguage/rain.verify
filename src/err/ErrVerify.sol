@@ -10,3 +10,7 @@ error NotApproved();
 
 /// @dev Thrown when an account already exists in the system and is being added.
 error AlreadyExists();
+
+/// @dev Thrown when a NIL account attempts an action that requires the account
+/// to have been previously added to the system.
+error UnknownAccount();

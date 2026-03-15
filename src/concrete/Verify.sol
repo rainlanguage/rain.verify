@@ -17,7 +17,7 @@ import {
 import {IVerifyCallbackV1} from "rain.verify.interface/interface/IVerifyCallbackV1.sol";
 import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
-import {ZeroAdmin, NotApproved, AlreadyExists} from "../err/ErrVerify.sol";
+import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount} from "../err/ErrVerify.sol";
 
 /// Records the time a verify session reaches each status.
 /// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
@@ -367,7 +367,7 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     function add(bytes calldata data) external {
         State memory lState = sStates[msg.sender];
         VerifyStatus currentStatus = statusAtTime(lState, block.timestamp);
-        if (currentStatus.eq(VERIFY_STATUS_APPROVED) && !currentStatus.eq(VERIFY_STATUS_BANNED)) {
+        if (currentStatus.eq(VERIFY_STATUS_APPROVED) || currentStatus.eq(VERIFY_STATUS_BANNED)) {
             revert AlreadyExists();
         }
         // An account that hasn't already been added need a new state.
@@ -576,10 +576,16 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
         }
     }
 
-    /// Any approved address can request some address be removed.
+    /// Any non-NIL account can request some address be removed.
+    /// This includes added, approved, and banned accounts. Banned accounts
+    /// need this as their only on-chain mechanism to appeal for removal, since
+    /// only a `REMOVER` can actually call `remove` to reset their state.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences Array of evidences to request removal of.
-    function requestRemove(Evidence[] calldata evidences) external onlyApproved {
+    function requestRemove(Evidence[] calldata evidences) external {
+        if (statusAtTime(sStates[msg.sender], block.timestamp).eq(VERIFY_STATUS_NIL)) {
+            revert UnknownAccount();
+        }
         unchecked {
             for (uint256 i = 0; i < evidences.length; i++) {
                 emit RequestRemove(msg.sender, evidences[i]);
