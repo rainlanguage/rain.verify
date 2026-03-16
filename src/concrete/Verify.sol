@@ -20,12 +20,13 @@ import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/IClone
 import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount} from "../err/ErrVerify.sol";
 
 /// Records the time a verify session reaches each status.
-/// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
-/// Most accounts will never be banned so most accounts will never reach every
-/// status, which is a good thing.
-/// @param addedSince Time the address was added else 0xFFFFFFFF.
-/// @param approvedSince Time the address was approved else 0xFFFFFFFF.
-/// @param bannedSince Time the address was banned else 0xFFFFFFFF.
+/// `approvedSince` and `bannedSince` are set to UNINITIALIZED (0xFFFFFFFF)
+/// when an account is first added, indicating those statuses have not been
+/// reached. `addedSince` is 0 (EVM default) for accounts that have never
+/// been added, or a timestamp once added.
+/// @param addedSince Time the address was added, or 0 if never added.
+/// @param approvedSince Time the address was approved, or 0xFFFFFFFF if not.
+/// @param bannedSince Time the address was banned, or 0xFFFFFFFF if not.
 struct State {
     uint32 addedSince;
     uint32 approvedSince;

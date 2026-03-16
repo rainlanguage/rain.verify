@@ -17,7 +17,6 @@ import {
 import {
     IInterpreterCallerV4, EvaluableV4
 } from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
-import {IInterpreterStoreV3} from "rain.interpreter.interface/interface/unstable/IInterpreterStoreV3.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
 import {LibNamespace} from "rain.interpreter.interface/lib/ns/LibNamespace.sol";
 
@@ -34,7 +33,6 @@ struct AutoApproveConfig {
 }
 
 contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
-    using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
 
@@ -60,6 +58,12 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
         return ICLONEABLE_V2_SUCCESS;
     }
 
+    /// @notice Evaluates each evidence item against the stored interpreter
+    /// expression. Evidence MUST be exactly 32 bytes or the call reverts with
+    /// `BadEvidenceLength`. If the interpreter returns a non-zero top-of-stack
+    /// value the evidence is marked for approval. After the loop, all approved
+    /// evidences are batched into a single `Verify.approve` call on the
+    /// caller (which must be the owning Verify contract).
     function afterAdd(address adder, Evidence[] calldata evidences) public virtual override {
         unchecked {
             // Inherit owner check etc.

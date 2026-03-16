@@ -6,6 +6,7 @@ import {Test, Vm} from "forge-std/Test.sol";
 import {Verify, VerifyConfig, State} from "../src/concrete/Verify.sol";
 import {Evidence, VerifyStatus} from "rain.verify.interface/interface/IVerifyV1.sol";
 import {ICloneableV2} from "rain.factory/interface/ICloneableV2.sol";
+import {NotApproved} from "../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 
@@ -21,6 +22,7 @@ contract VerifyRequestApproveTest is Test {
     address internal constant ADMIN = address(uint160(uint256(keccak256("admin"))));
 
     bytes32 internal constant APPROVER_ROLE = keccak256("APPROVER");
+    bytes32 internal constant BANNER_ROLE = keccak256("BANNER");
 
     constructor() {
         Verify implementation = new Verify();
@@ -183,5 +185,61 @@ contract VerifyRequestApproveTest is Test {
             signer1StateAfterSigner2Request.bannedSince,
             "signer1 bannedSince changed after signer2 request"
         );
+    }
+
+    /// A NIL account MUST NOT be able to call `requestApprove`.
+    function testRequestApproveNilReverts(address user, address subject, bytes memory data) external {
+        vm.assume(user != address(0));
+        vm.assume(subject != address(0));
+
+        Evidence[] memory evidences = new Evidence[](1);
+        evidences[0] = Evidence(subject, data);
+
+        vm.prank(user);
+        vm.expectRevert(abi.encodeWithSelector(NotApproved.selector));
+        I_VERIFY.requestApprove(evidences);
+    }
+
+    /// An ADDED (but not approved) account MUST NOT be able to call
+    /// `requestApprove`.
+    function testRequestApproveAddedReverts(address user, address subject, bytes memory data) external {
+        vm.assume(user != address(0));
+        vm.assume(subject != address(0));
+        vm.assume(user != subject);
+
+        vm.prank(user);
+        I_VERIFY.add(data);
+
+        Evidence[] memory evidences = new Evidence[](1);
+        evidences[0] = Evidence(subject, data);
+
+        vm.prank(user);
+        vm.expectRevert(abi.encodeWithSelector(NotApproved.selector));
+        I_VERIFY.requestApprove(evidences);
+    }
+
+    /// A BANNED account MUST NOT be able to call `requestApprove`.
+    function testRequestApproveBannedReverts(address user, address banner, bytes memory data) external {
+        vm.assume(user != address(0));
+        vm.assume(banner != address(0));
+        vm.assume(user != banner);
+
+        vm.prank(ADMIN);
+        I_VERIFY.grantRole(BANNER_ROLE, banner);
+
+        vm.prank(user);
+        I_VERIFY.add(data);
+
+        Evidence[] memory banEvidence = new Evidence[](1);
+        banEvidence[0] = Evidence(user, data);
+        vm.prank(banner);
+        I_VERIFY.ban(banEvidence);
+
+        Evidence[] memory evidences = new Evidence[](1);
+        evidences[0] = Evidence(user, data);
+
+        vm.prank(user);
+        vm.expectRevert(abi.encodeWithSelector(NotApproved.selector));
+        I_VERIFY.requestApprove(evidences);
     }
 }
