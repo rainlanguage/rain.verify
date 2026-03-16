@@ -15,7 +15,7 @@ import {
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
 import {ZeroAdmin} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
-import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /// @title VerifyConstructionTest

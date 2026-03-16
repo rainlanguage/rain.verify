@@ -27,7 +27,7 @@ import {IInterpreterStoreV3} from "rain.interpreter.interface/interface/unstable
 import {EvaluableV4} from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
 import {StateNamespace, FullyQualifiedNamespace} from "rain.interpreter.interface/interface/IInterpreterV3.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
-import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @dev Mock interpreter that returns a configurable stack value from `eval4`.
 /// Does NOT inherit `IInterpreterV4` because the interface declares `calldata`

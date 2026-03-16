@@ -15,7 +15,7 @@ import {
 import {ICloneableV2} from "rain.factory/interface/ICloneableV2.sol";
 import {UnknownAccount} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
-import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title VerifyRequestRemoveTest
 /// @notice Tests that `requestRemove` is accessible from any non-NIL state

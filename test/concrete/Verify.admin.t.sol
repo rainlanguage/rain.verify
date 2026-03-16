@@ -8,7 +8,7 @@ import {Evidence, VerifyStatus} from "rain.verify.interface/interface/IVerifyV1.
 import {ICloneableV2} from "rain.factory/interface/ICloneableV2.sol";
 import {ZeroAdmin} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
-import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 /// @title VerifyAdminTest
