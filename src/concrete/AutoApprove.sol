@@ -51,11 +51,9 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
 
     /// @inheritdoc ICloneableV2
     function initialize(bytes calldata data) external initializer returns (bytes32 success) {
-        verifyCallbackInit();
-
         AutoApproveConfig memory config = abi.decode(data, (AutoApproveConfig));
 
-        _transferOwnership(config.owner);
+        verifyCallbackInit(config.owner);
         emit Initialize(msg.sender, config);
         sEvaluable = config.evaluable;
 

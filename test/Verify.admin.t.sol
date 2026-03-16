@@ -9,6 +9,7 @@ import {ICloneableV2} from "rain.factory/interface/ICloneableV2.sol";
 import {ZeroAdmin} from "../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 /// @title VerifyAdminTest
 /// @notice Tests for admin role delegation, renunciation, and the ability of
@@ -93,21 +94,17 @@ contract VerifyAdminTest is Test {
         assertFalse(I_VERIFY.hasRole(BANNER_ADMIN_ROLE, ADMIN));
 
         // ADMIN can no longer grant APPROVER_ADMIN.
-        // OZ v4 AccessControl reverts with a string whose content depends on
-        // the caller address, so we cannot predict it exactly.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, APPROVER_ADMIN_ROLE));
         vm.prank(ADMIN);
         I_VERIFY.grantRole(APPROVER_ADMIN_ROLE, target);
 
         // ADMIN can no longer grant REMOVER_ADMIN.
-        // OZ v4 AccessControl string revert.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, REMOVER_ADMIN_ROLE));
         vm.prank(ADMIN);
         I_VERIFY.grantRole(REMOVER_ADMIN_ROLE, target);
 
         // ADMIN can no longer grant BANNER_ADMIN.
-        // OZ v4 AccessControl string revert.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, BANNER_ADMIN_ROLE));
         vm.prank(ADMIN);
         I_VERIFY.grantRole(BANNER_ADMIN_ROLE, target);
     }

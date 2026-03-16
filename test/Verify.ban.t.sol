@@ -15,6 +15,7 @@ import {
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
 import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 /// @title VerifyBanTest
 /// @notice Tests for the `ban` function on `Verify`. Covers preemptive banning
@@ -77,9 +78,7 @@ contract VerifyBanTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(account, data);
 
-        // OZ AccessControl revert with unpredictable string content due to
-        // fuzzed addresses.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, banner, APPROVER_ROLE));
         vm.prank(banner);
         I_VERIFY.approve(evidences);
     }
@@ -100,9 +99,7 @@ contract VerifyBanTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(account, data);
 
-        // OZ AccessControl revert with unpredictable string content due to
-        // fuzzed addresses.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, banner, REMOVER_ROLE));
         vm.prank(banner);
         I_VERIFY.remove(evidences);
     }
@@ -122,9 +119,7 @@ contract VerifyBanTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(account, data);
 
-        // OZ AccessControl revert with unpredictable string content due to
-        // fuzzed addresses.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonBanner, BANNER_ROLE));
         vm.prank(nonBanner);
         I_VERIFY.ban(evidences);
     }

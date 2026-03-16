@@ -4,6 +4,8 @@ pragma solidity =0.8.25;
 
 import {Test, Vm} from "forge-std/Test.sol";
 import {AutoApprove, AutoApproveConfig, BadEvidenceLength} from "../src/concrete/AutoApprove.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {Verify, VerifyConfig} from "../src/concrete/Verify.sol";
 import {
     Evidence,
@@ -176,7 +178,7 @@ contract AutoApproveTest is Test {
         AutoApproveConfig memory config = AutoApproveConfig({owner: owner, evaluable: evaluable});
         ICloneableV2(clone).initialize(abi.encode(config));
 
-        vm.expectRevert("Initializable: contract is already initialized");
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         ICloneableV2(clone).initialize(abi.encode(config));
     }
 
@@ -297,7 +299,7 @@ contract AutoApproveTest is Test {
         evidences[0] = Evidence(account, abi.encodePacked(bytes32(uint256(42))));
 
         vm.prank(caller);
-        vm.expectRevert("Ownable: caller is not the owner");
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, caller));
         autoApprove.afterAdd(address(this), evidences);
     }
 

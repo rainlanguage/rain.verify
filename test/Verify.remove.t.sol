@@ -15,6 +15,7 @@ import {
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
 import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 /// @title VerifyRemoveTest
 /// @notice Tests that `remove` is only callable by the REMOVER role, that a
@@ -56,9 +57,7 @@ contract VerifyRemoveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        // OZ AccessControl revert with unpredictable string content due to
-        // fuzzed addresses.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, remover, APPROVER_ROLE));
         vm.prank(remover);
         I_VERIFY.approve(evidences);
     }
@@ -80,9 +79,7 @@ contract VerifyRemoveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        // OZ AccessControl revert with unpredictable string content due to
-        // fuzzed addresses.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, remover, BANNER_ROLE));
         vm.prank(remover);
         I_VERIFY.ban(evidences);
     }
@@ -101,9 +98,7 @@ contract VerifyRemoveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        // OZ AccessControl revert with unpredictable string content due to
-        // fuzzed addresses.
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonRemover, REMOVER_ROLE));
         vm.prank(nonRemover);
         I_VERIFY.remove(evidences);
     }

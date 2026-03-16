@@ -16,6 +16,7 @@ import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/IClone
 import {ZeroAdmin} from "../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /// @title VerifyConstructionTest
 /// @notice Tests that `Verify` constructs and initializes correctly, including
@@ -108,7 +109,7 @@ contract VerifyConstructionTest is Test {
         vm.assume(admin != address(0));
         address clone = Clones.clone(address(I_IMPLEMENTATION));
         ICloneableV2(clone).initialize(abi.encode(VerifyConfig(admin, callback)));
-        vm.expectRevert("Initializable: contract is already initialized");
+        vm.expectRevert(abi.encodeWithSelector(Initializable.InvalidInitialization.selector));
         ICloneableV2(clone).initialize(abi.encode(VerifyConfig(admin, callback)));
     }
 

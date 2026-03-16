@@ -10,8 +10,8 @@ import {OwnableUpgradeable as Ownable} from "openzeppelin-contracts-upgradeable/
 /// so that inheriting contracts only have to override the callbacks they need
 /// to define logic for.
 abstract contract VerifyCallback is IVerifyCallbackV1, Ownable {
-    function verifyCallbackInit() internal onlyInitializing {
-        __Ownable_init();
+    function verifyCallbackInit(address initialOwner) internal onlyInitializing {
+        __Ownable_init(initialOwner);
     }
 
     function afterAdd(address adder, Evidence[] calldata evidences) public virtual override onlyOwner {}
