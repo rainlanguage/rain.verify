@@ -3,7 +3,7 @@
 pragma solidity =0.8.25;
 
 import {Test} from "forge-std/Test.sol";
-import {Verify, VerifyConfig, State} from "../src/concrete/Verify.sol";
+import {Verify, VerifyConfig, State} from "../../src/concrete/Verify.sol";
 import {
     Evidence,
     VerifyStatus,
@@ -13,15 +13,14 @@ import {
     VERIFY_STATUS_BANNED
 } from "rain.verify.interface/interface/IVerifyV1.sol";
 import {ICloneableV2} from "rain.factory/interface/ICloneableV2.sol";
-import {UnknownAccount} from "../src/err/ErrVerify.sol";
-import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
+import {AlreadyExists} from "../../src/err/ErrVerify.sol";
+import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 
-/// @title VerifyRequestRemoveTest
-/// @notice Tests that `requestRemove` is accessible from any non-NIL state
-/// (ADDED, APPROVED, BANNED) and reverts for NIL accounts. This ensures
-/// banned accounts have an on-chain appeal mechanism to request removal.
-contract VerifyRequestRemoveTest is Test {
+/// @title VerifyAddTest
+/// @notice Tests that `add` is only accessible from NIL and ADDED states.
+/// Approved and banned accounts MUST revert with `AlreadyExists`.
+contract VerifyAddTest is Test {
     using LibVerifyStatus for VerifyStatus;
 
     Verify internal immutable I_VERIFY;
@@ -38,32 +37,29 @@ contract VerifyRequestRemoveTest is Test {
         ICloneableV2(clone).initialize(abi.encode(VerifyConfig(ADMIN, address(0))));
     }
 
-    /// A NIL account MUST NOT be able to request removal. Reverts
-    /// `UnknownAccount`.
-    function testRequestRemoveFromNIL(address user, bytes memory data) external {
+    /// A NIL account can add itself with arbitrary evidence.
+    function testAddFromNIL(address user, bytes memory data) external {
         vm.assume(user != address(0));
-        Evidence[] memory evidences = new Evidence[](1);
-        evidences[0] = Evidence(user, data);
-        vm.prank(user);
-        vm.expectRevert(abi.encodeWithSelector(UnknownAccount.selector));
-        I_VERIFY.requestRemove(evidences);
-    }
-
-    /// An ADDED account can request removal.
-    function testRequestRemoveFromADDED(address user, bytes memory data) external {
-        vm.assume(user != address(0));
-
         vm.prank(user);
         I_VERIFY.add(data);
-
-        Evidence[] memory evidences = new Evidence[](1);
-        evidences[0] = Evidence(user, data);
-        vm.prank(user);
-        I_VERIFY.requestRemove(evidences);
+        assertTrue(I_VERIFY.accountStatusAtTime(user, block.timestamp).eq(VERIFY_STATUS_ADDED));
     }
 
-    /// An APPROVED account can request removal.
-    function testRequestRemoveFromAPPROVED(address user, address approver, bytes memory data) external {
+    /// An ADDED account can resubmit evidence without changing state.
+    function testAddFromADDED(address user, bytes memory data0, bytes memory data1) external {
+        vm.assume(user != address(0));
+
+        vm.prank(user);
+        I_VERIFY.add(data0);
+        assertTrue(I_VERIFY.accountStatusAtTime(user, block.timestamp).eq(VERIFY_STATUS_ADDED));
+
+        vm.prank(user);
+        I_VERIFY.add(data1);
+        assertTrue(I_VERIFY.accountStatusAtTime(user, block.timestamp).eq(VERIFY_STATUS_ADDED));
+    }
+
+    /// An APPROVED account MUST NOT be able to add. Reverts `AlreadyExists`.
+    function testAddFromAPPROVED(address user, address approver, bytes memory data) external {
         vm.assume(user != address(0));
         vm.assume(approver != address(0));
         vm.assume(approver != user);
@@ -79,14 +75,13 @@ contract VerifyRequestRemoveTest is Test {
         vm.prank(approver);
         I_VERIFY.approve(evidences);
 
-        Evidence[] memory removeEvidences = new Evidence[](1);
-        removeEvidences[0] = Evidence(user, data);
         vm.prank(user);
-        I_VERIFY.requestRemove(removeEvidences);
+        vm.expectRevert(abi.encodeWithSelector(AlreadyExists.selector));
+        I_VERIFY.add(data);
     }
 
-    /// A BANNED account can request removal as an appeal mechanism.
-    function testRequestRemoveFromBANNED(address user, address banner, bytes memory data) external {
+    /// A BANNED account MUST NOT be able to add. Reverts `AlreadyExists`.
+    function testAddFromBANNED(address user, address banner, bytes memory data) external {
         vm.assume(user != address(0));
         vm.assume(banner != address(0));
         vm.assume(banner != user);
@@ -102,9 +97,8 @@ contract VerifyRequestRemoveTest is Test {
         vm.prank(banner);
         I_VERIFY.ban(evidences);
 
-        Evidence[] memory removeEvidences = new Evidence[](1);
-        removeEvidences[0] = Evidence(user, data);
         vm.prank(user);
-        I_VERIFY.requestRemove(removeEvidences);
+        vm.expectRevert(abi.encodeWithSelector(AlreadyExists.selector));
+        I_VERIFY.add(data);
     }
 }

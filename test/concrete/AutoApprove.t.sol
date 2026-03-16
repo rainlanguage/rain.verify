@@ -3,10 +3,10 @@
 pragma solidity =0.8.25;
 
 import {Test, Vm} from "forge-std/Test.sol";
-import {AutoApprove, AutoApproveConfig, BadEvidenceLength} from "../src/concrete/AutoApprove.sol";
+import {AutoApprove, AutoApproveConfig, BadEvidenceLength} from "../../src/concrete/AutoApprove.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import {Verify, VerifyConfig} from "../src/concrete/Verify.sol";
+import {Verify, VerifyConfig} from "../../src/concrete/Verify.sol";
 import {
     Evidence,
     VerifyStatus,
@@ -26,7 +26,7 @@ import {
 import {IInterpreterStoreV3} from "rain.interpreter.interface/interface/unstable/IInterpreterStoreV3.sol";
 import {EvaluableV4} from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
 import {StateNamespace, FullyQualifiedNamespace} from "rain.interpreter.interface/interface/IInterpreterV3.sol";
-import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
+import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 
 /// @dev Mock interpreter that returns a configurable stack value from `eval4`.

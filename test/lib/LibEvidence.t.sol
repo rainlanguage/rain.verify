@@ -4,7 +4,7 @@ pragma solidity =0.8.25;
 
 import {Test} from "forge-std/Test.sol";
 import {Evidence} from "rain.verify.interface/interface/IVerifyV1.sol";
-import {LibEvidence} from "../src/lib/LibEvidence.sol";
+import {LibEvidence} from "../../src/lib/LibEvidence.sol";
 
 /// @title LibEvidenceHarness
 /// @notice Exposes `LibEvidence` internal functions as external calls so they

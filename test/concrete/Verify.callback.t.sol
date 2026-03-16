@@ -3,7 +3,7 @@
 pragma solidity =0.8.25;
 
 import {Test} from "forge-std/Test.sol";
-import {Verify, VerifyConfig, State} from "../src/concrete/Verify.sol";
+import {Verify, VerifyConfig, State} from "../../src/concrete/Verify.sol";
 import {
     Evidence,
     VerifyStatus,
@@ -14,7 +14,7 @@ import {
 } from "rain.verify.interface/interface/IVerifyV1.sol";
 import {IVerifyCallbackV1} from "rain.verify.interface/interface/IVerifyCallbackV1.sol";
 import {ICloneableV2} from "rain.factory/interface/ICloneableV2.sol";
-import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
+import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 
 /// @dev Tracks which callback hooks were called and with what arguments.

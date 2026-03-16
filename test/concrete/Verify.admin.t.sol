@@ -3,11 +3,11 @@
 pragma solidity =0.8.25;
 
 import {Test} from "forge-std/Test.sol";
-import {Verify, VerifyConfig, State} from "../src/concrete/Verify.sol";
+import {Verify, VerifyConfig, State} from "../../src/concrete/Verify.sol";
 import {Evidence, VerifyStatus} from "rain.verify.interface/interface/IVerifyV1.sol";
 import {ICloneableV2} from "rain.factory/interface/ICloneableV2.sol";
-import {ZeroAdmin} from "../src/err/ErrVerify.sol";
-import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
+import {ZeroAdmin} from "../../src/err/ErrVerify.sol";
+import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 

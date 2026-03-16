@@ -3,7 +3,7 @@
 pragma solidity =0.8.25;
 
 import {Test, Vm} from "forge-std/Test.sol";
-import {Verify, VerifyConfig, State} from "../src/concrete/Verify.sol";
+import {Verify, VerifyConfig, State} from "../../src/concrete/Verify.sol";
 import {
     Evidence,
     VerifyStatus,
@@ -13,8 +13,8 @@ import {
     VERIFY_STATUS_BANNED
 } from "rain.verify.interface/interface/IVerifyV1.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
-import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount} from "../src/err/ErrVerify.sol";
-import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
+import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount} from "../../src/err/ErrVerify.sol";
+import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
 import {IAccessControl} from
     "@openzeppelin/contracts/access/IAccessControl.sol";
