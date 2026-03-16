@@ -57,7 +57,9 @@ contract VerifyRemoveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, remover, APPROVER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, remover, APPROVER_ROLE)
+        );
         vm.prank(remover);
         I_VERIFY.approve(evidences);
     }
@@ -79,7 +81,9 @@ contract VerifyRemoveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, remover, BANNER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, remover, BANNER_ROLE)
+        );
         vm.prank(remover);
         I_VERIFY.ban(evidences);
     }
@@ -98,7 +102,9 @@ contract VerifyRemoveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonRemover, REMOVER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonRemover, REMOVER_ROLE)
+        );
         vm.prank(nonRemover);
         I_VERIFY.remove(evidences);
     }
@@ -156,12 +162,9 @@ contract VerifyRemoveTest is Test {
     /// After removing an APPROVED account, the on-chain state MUST be fully
     /// cleared: `addedSince`, `approvedSince`, and `bannedSince` all reset
     /// to zero.
-    function testRemoveFromApprovedClearsState(
-        address remover,
-        address approver,
-        address user,
-        bytes memory data
-    ) external {
+    function testRemoveFromApprovedClearsState(address remover, address approver, address user, bytes memory data)
+        external
+    {
         vm.assume(remover != address(0));
         vm.assume(approver != address(0));
         vm.assume(user != address(0));

@@ -182,13 +182,9 @@ contract VerifyStateTest is Test {
 
     /// Full lifecycle integration: walks an account through every state
     /// transition and verifies the `State` struct fields at each step.
-    function testStateFullLifecycle(
-        address user,
-        address approver,
-        address banner,
-        address remover,
-        bytes memory data
-    ) external {
+    function testStateFullLifecycle(address user, address approver, address banner, address remover, bytes memory data)
+        external
+    {
         vm.assume(user != address(0));
         vm.assume(approver != address(0));
         vm.assume(banner != address(0));

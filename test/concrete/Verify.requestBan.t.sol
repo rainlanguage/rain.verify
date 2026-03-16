@@ -55,12 +55,9 @@ contract VerifyRequestBanTest is Test {
     /// An approved account can request a ban. The call MUST emit a
     /// `RequestBan` event with the caller as `sender` and the correct
     /// `Evidence`.
-    function testRequestBanApprovedEmitsEvent(
-        address approver,
-        address requester,
-        address target,
-        bytes memory data
-    ) external {
+    function testRequestBanApprovedEmitsEvent(address approver, address requester, address target, bytes memory data)
+        external
+    {
         vm.assume(approver != address(0));
         vm.assume(requester != address(0));
         vm.assume(target != address(0));

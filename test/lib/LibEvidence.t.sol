@@ -40,11 +40,11 @@ contract LibEvidenceHarness {
     /// Batch update three refs then convert to `Evidence[]` in a single call.
     /// Required because `_updateEvidenceRef` stores memory pointers that don't
     /// survive ABI encoding across external call boundaries.
-    function updateThreeAndConvert(
-        Evidence memory e0,
-        Evidence memory e1,
-        Evidence memory e2
-    ) external pure returns (Evidence[] memory) {
+    function updateThreeAndConvert(Evidence memory e0, Evidence memory e1, Evidence memory e2)
+        external
+        pure
+        returns (Evidence[] memory)
+    {
         uint256[] memory refs = new uint256[](3);
         refs._updateEvidenceRef(e0, 0);
         refs._updateEvidenceRef(e1, 1);
@@ -89,9 +89,7 @@ contract LibEvidenceTest is Test {
         bytes memory data2
     ) external view {
         Evidence[] memory evidences = I_HARNESS.updateThreeAndConvert(
-            Evidence(account0, data0),
-            Evidence(account1, data1),
-            Evidence(account2, data2)
+            Evidence(account0, data0), Evidence(account1, data1), Evidence(account2, data2)
         );
 
         assertEq(evidences.length, 3);

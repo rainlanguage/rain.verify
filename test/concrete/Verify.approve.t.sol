@@ -16,8 +16,7 @@ import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/IClone
 import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
-import {IAccessControl} from
-    "@openzeppelin/contracts/access/IAccessControl.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 /// @title VerifyApproveTest
 /// @notice Tests for `approve` covering role separation, implicit add+approve,
@@ -57,7 +56,9 @@ contract VerifyApproveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, approver, REMOVER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, approver, REMOVER_ROLE)
+        );
         vm.prank(approver);
         I_VERIFY.remove(evidences);
     }
@@ -78,7 +79,9 @@ contract VerifyApproveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, approver, BANNER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, approver, BANNER_ROLE)
+        );
         vm.prank(approver);
         I_VERIFY.ban(evidences);
     }
@@ -122,7 +125,9 @@ contract VerifyApproveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonApprover, APPROVER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonApprover, APPROVER_ROLE)
+        );
         vm.prank(nonApprover);
         I_VERIFY.approve(evidences);
     }

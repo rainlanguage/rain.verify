@@ -44,12 +44,9 @@ contract VerifyAdminDuplicateActionsTest is Test {
 
     /// Re-approving an already approved account emits an `Approve` event but
     /// does not change the `approvedSince` timestamp in the stored `State`.
-    function testDuplicateApproveIsIdempotent(
-        address user,
-        address approver0,
-        address approver1,
-        bytes memory data
-    ) external {
+    function testDuplicateApproveIsIdempotent(address user, address approver0, address approver1, bytes memory data)
+        external
+    {
         vm.assume(user != address(0));
         vm.assume(approver0 != address(0));
         vm.assume(approver1 != address(0));
@@ -228,7 +225,9 @@ contract VerifyAdminDuplicateActionsTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonApprover, APPROVER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonApprover, APPROVER_ROLE)
+        );
         vm.prank(nonApprover);
         I_VERIFY.approve(evidences);
     }
@@ -247,7 +246,9 @@ contract VerifyAdminDuplicateActionsTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonBanner, BANNER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonBanner, BANNER_ROLE)
+        );
         vm.prank(nonBanner);
         I_VERIFY.ban(evidences);
     }
@@ -266,7 +267,9 @@ contract VerifyAdminDuplicateActionsTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonRemover, REMOVER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonRemover, REMOVER_ROLE)
+        );
         vm.prank(nonRemover);
         I_VERIFY.remove(evidences);
     }

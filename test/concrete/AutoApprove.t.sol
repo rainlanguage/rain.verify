@@ -109,10 +109,7 @@ contract AutoApproveTest is Test {
 
     /// @dev Helper to deploy AutoApprove + Verify wired together with a
     /// default mock evaluable.
-    function _deployIntegration()
-        internal
-        returns (AutoApprove autoApprove, Verify verify)
-    {
+    function _deployIntegration() internal returns (AutoApprove autoApprove, Verify verify) {
         (MockInterpreterV4 interpreter, EvaluableV4 memory evaluable) = _createMockEvaluable();
         interpreter.setReturnValue(StackItem.wrap(bytes32(uint256(1))));
 

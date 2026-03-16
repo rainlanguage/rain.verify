@@ -62,12 +62,9 @@ contract VerifyAdminTest is Test {
 
     /// ADMIN delegates all three admin roles, then renounces them. After
     /// renouncing, ADMIN MUST no longer be able to grant any admin role.
-    function testAdminRenounceLocksOutGranting(
-        address aprAdmin,
-        address remAdmin,
-        address banAdmin,
-        address target
-    ) external {
+    function testAdminRenounceLocksOutGranting(address aprAdmin, address remAdmin, address banAdmin, address target)
+        external
+    {
         vm.assume(aprAdmin != address(0));
         vm.assume(remAdmin != address(0));
         vm.assume(banAdmin != address(0));
@@ -94,17 +91,23 @@ contract VerifyAdminTest is Test {
         assertFalse(I_VERIFY.hasRole(BANNER_ADMIN_ROLE, ADMIN));
 
         // ADMIN can no longer grant APPROVER_ADMIN.
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, APPROVER_ADMIN_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, APPROVER_ADMIN_ROLE)
+        );
         vm.prank(ADMIN);
         I_VERIFY.grantRole(APPROVER_ADMIN_ROLE, target);
 
         // ADMIN can no longer grant REMOVER_ADMIN.
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, REMOVER_ADMIN_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, REMOVER_ADMIN_ROLE)
+        );
         vm.prank(ADMIN);
         I_VERIFY.grantRole(REMOVER_ADMIN_ROLE, target);
 
         // ADMIN can no longer grant BANNER_ADMIN.
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, BANNER_ADMIN_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, ADMIN, BANNER_ADMIN_ROLE)
+        );
         vm.prank(ADMIN);
         I_VERIFY.grantRole(BANNER_ADMIN_ROLE, target);
     }

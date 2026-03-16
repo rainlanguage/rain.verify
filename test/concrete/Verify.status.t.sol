@@ -127,13 +127,9 @@ contract VerifyStatusTest is Test {
     /// Full lifecycle integration test: walks an account through NIL -> ADDED
     /// -> APPROVED -> BANNED -> removed (NIL) and verifies `statusAtTime` at
     /// each historical timestamp using the state snapshot before removal.
-    function testStatusFullLifecycle(
-        address user,
-        address approver,
-        address banner,
-        address remover,
-        bytes memory data
-    ) external {
+    function testStatusFullLifecycle(address user, address approver, address banner, address remover, bytes memory data)
+        external
+    {
         vm.assume(user != address(0));
         vm.assume(approver != address(0));
         vm.assume(banner != address(0));

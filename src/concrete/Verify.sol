@@ -2,8 +2,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {AccessControlUpgradeable as AccessControl} from
-    "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
+import {
+    AccessControlUpgradeable as AccessControl
+} from "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {LibEvidence} from "../lib/LibEvidence.sol";
 import {LibUint256Array} from "rain.solmem/lib/LibUint256Array.sol";
 import {

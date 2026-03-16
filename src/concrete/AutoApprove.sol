@@ -15,7 +15,8 @@ import {
     EvalV4
 } from "rain.interpreter.interface/interface/unstable/IInterpreterV4.sol";
 import {
-    IInterpreterCallerV4, EvaluableV4
+    IInterpreterCallerV4,
+    EvaluableV4
 } from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
 import {LibNamespace} from "rain.interpreter.interface/lib/ns/LibNamespace.sol";
@@ -96,17 +97,18 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
                     // this warning. At the least the caller can remove bad evidence and
                     // try again.
                     // slither-disable-next-line calls-loop
-                    (StackItem[] memory stack, bytes32[] memory kvs) = evaluable.interpreter.eval4(
-                        EvalV4({
-                            store: evaluable.store,
-                            namespace: LibNamespace.qualifyNamespace(DEFAULT_STATE_NAMESPACE, address(this)),
-                            bytecode: evaluable.bytecode,
-                            sourceIndex: CAN_APPROVE_ENTRYPOINT,
-                            context: context,
-                            inputs: new StackItem[](0),
-                            stateOverlay: new bytes32[](0)
-                        })
-                    );
+                    (StackItem[] memory stack, bytes32[] memory kvs) = evaluable.interpreter
+                        .eval4(
+                            EvalV4({
+                                store: evaluable.store,
+                                namespace: LibNamespace.qualifyNamespace(DEFAULT_STATE_NAMESPACE, address(this)),
+                                bytecode: evaluable.bytecode,
+                                sourceIndex: CAN_APPROVE_ENTRYPOINT,
+                                context: context,
+                                inputs: new StackItem[](0),
+                                stateOverlay: new bytes32[](0)
+                            })
+                        );
                     if (stack.length > 0 && StackItem.unwrap(stack[stack.length - 1]) > 0) {
                         LibEvidence._updateEvidenceRef(approvedRefs, evidences[i], approvals);
                         approvals++;

@@ -1,4 +1,4 @@
 {
-    "detectors_to_exclude": "assembly-usage,solc-version,unused-imports,different-pragma-directives-are-used",
-    "filter_paths": "forge-std,openzeppelin,test"
+    "detectors_to_exclude": "assembly-usage,solc-version,unused-imports,different-pragma-directives-are-used,unindexed-event-address",
+    "filter_paths": "rain.interpreter.interface,openzeppelin-contracts-upgradeable,rain.factory,rain.solmem,rain.verify.interface,rain.deploy,forge-std,test"
 }

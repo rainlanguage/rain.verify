@@ -78,7 +78,9 @@ contract VerifyBanTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(account, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, banner, APPROVER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, banner, APPROVER_ROLE)
+        );
         vm.prank(banner);
         I_VERIFY.approve(evidences);
     }
@@ -99,7 +101,9 @@ contract VerifyBanTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(account, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, banner, REMOVER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, banner, REMOVER_ROLE)
+        );
         vm.prank(banner);
         I_VERIFY.remove(evidences);
     }
@@ -119,7 +123,9 @@ contract VerifyBanTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(account, data);
 
-        vm.expectRevert(abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonBanner, BANNER_ROLE));
+        vm.expectRevert(
+            abi.encodeWithSelector(IAccessControl.AccessControlUnauthorizedAccount.selector, nonBanner, BANNER_ROLE)
+        );
         vm.prank(nonBanner);
         I_VERIFY.ban(evidences);
     }
