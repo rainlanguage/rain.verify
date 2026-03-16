@@ -13,3 +13,6 @@
 [submodule "lib/rain.verify.interface"]
 	path = lib/rain.verify.interface
 	url = https://github.com/rainlanguage/rain.verify.interface
+[submodule "lib/rain.deploy"]
+	path = lib/rain.deploy
+	url = https://github.com/rainlanguage/rain.deploy
