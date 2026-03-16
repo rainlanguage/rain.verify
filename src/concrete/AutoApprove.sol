@@ -15,19 +15,17 @@ import {
     EvalV4
 } from "rain.interpreter.interface/interface/unstable/IInterpreterV4.sol";
 import {
-    IInterpreterCallerV4, EvaluableV4
+    IInterpreterCallerV4,
+    EvaluableV4
 } from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
-import {IInterpreterStoreV3} from "rain.interpreter.interface/interface/unstable/IInterpreterStoreV3.sol";
-import {LibContext} from "rain.interpreter.interface/lib/caller/LibContext.sol";
-import {LibEvaluable} from "rain.interpreter.interface/lib/caller/LibEvaluable.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
-import {LibPointer, Pointer} from "rain.solmem/lib/LibPointer.sol";
 import {LibNamespace} from "rain.interpreter.interface/lib/ns/LibNamespace.sol";
 
-bytes32 constant CALLER_META_HASH = bytes32(0x92932311849707fd57884c540914fe3ff7f45ac30152a2aa7fcc9426a6ac22d7);
+/// @dev Thrown when evidence data is not exactly 32 bytes, which is required
+/// for AutoApprove to pass as context to the interpreter.
+/// @param length The actual length of the evidence data.
+error BadEvidenceLength(uint256 length);
 
-uint256 constant CAN_APPROVE_MIN_OUTPUTS = 1;
-uint16 constant CAN_APPROVE_MAX_OUTPUTS = 1;
 SourceIndexV2 constant CAN_APPROVE_ENTRYPOINT = SourceIndexV2.wrap(0);
 
 struct AutoApproveConfig {
@@ -36,11 +34,8 @@ struct AutoApproveConfig {
 }
 
 contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
-    using LibPointer for Pointer;
-    using LibUint256Array for uint256;
     using LibUint256Array for uint256[];
     using LibEvidence for uint256[];
-    using LibPointer for uint256[];
 
     /// Contract has initialized.
     /// @param sender `msg.sender` initializing the contract (factory).
@@ -55,17 +50,21 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
 
     /// @inheritdoc ICloneableV2
     function initialize(bytes calldata data) external initializer returns (bytes32 success) {
-        verifyCallbackInit();
-
         AutoApproveConfig memory config = abi.decode(data, (AutoApproveConfig));
 
-        _transferOwnership(config.owner);
+        verifyCallbackInit(config.owner);
         emit Initialize(msg.sender, config);
         sEvaluable = config.evaluable;
 
         return ICLONEABLE_V2_SUCCESS;
     }
 
+    /// @notice Evaluates each evidence item against the stored interpreter
+    /// expression. Evidence MUST be exactly 32 bytes or the call reverts with
+    /// `BadEvidenceLength`. If the interpreter returns a non-zero top-of-stack
+    /// value the evidence is marked for approval. After the loop, all approved
+    /// evidences are batched into a single `Verify.approve` call on the
+    /// caller (which must be the owning Verify contract).
     function afterAdd(address adder, Evidence[] calldata evidences) public virtual override {
         unchecked {
             // Inherit owner check etc.
@@ -78,8 +77,10 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
             EvaluableV4 memory evaluable = sEvaluable;
 
             for (uint256 i = 0; i < evidences.length; i++) {
-                // Currently we only support 32 byte evidence for auto approve.
-                if (evidences[i].data.length == 0x20) {
+                if (evidences[i].data.length != 0x20) {
+                    revert BadEvidenceLength(evidences[i].data.length);
+                }
+                {
                     context[0][0] = bytes32(uint256(uint160(evidences[i].account)));
                     context[0][1] = bytes32(evidences[i].data);
                     // Slither complains about this event coming after the set
@@ -96,18 +97,19 @@ contract AutoApprove is ICloneableV2, VerifyCallback, IInterpreterCallerV4 {
                     // this warning. At the least the caller can remove bad evidence and
                     // try again.
                     // slither-disable-next-line calls-loop
-                    (StackItem[] memory stack, bytes32[] memory kvs) = evaluable.interpreter.eval4(
-                        EvalV4({
-                            store: evaluable.store,
-                            namespace: LibNamespace.qualifyNamespace(DEFAULT_STATE_NAMESPACE, address(this)),
-                            bytecode: evaluable.bytecode,
-                            sourceIndex: CAN_APPROVE_ENTRYPOINT,
-                            context: context,
-                            inputs: new StackItem[](0),
-                            stateOverlay: new bytes32[](0)
-                        })
-                    );
-                    if (StackItem.unwrap(stack[stack.length - 1]) > 0) {
+                    (StackItem[] memory stack, bytes32[] memory kvs) = evaluable.interpreter
+                        .eval4(
+                            EvalV4({
+                                store: evaluable.store,
+                                namespace: LibNamespace.qualifyNamespace(DEFAULT_STATE_NAMESPACE, address(this)),
+                                bytecode: evaluable.bytecode,
+                                sourceIndex: CAN_APPROVE_ENTRYPOINT,
+                                context: context,
+                                inputs: new StackItem[](0),
+                                stateOverlay: new bytes32[](0)
+                            })
+                        );
+                    if (stack.length > 0 && StackItem.unwrap(stack[stack.length - 1]) > 0) {
                         LibEvidence._updateEvidenceRef(approvedRefs, evidences[i], approvals);
                         approvals++;
                     }

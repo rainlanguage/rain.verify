@@ -11,10 +11,28 @@ evm_version = "paris"
 
 remappings = [
     "forge-std/=lib/rain.verify.interface/lib/forge-std/src/",
+    "rain.deploy/=lib/rain.deploy/src/",
     "rain.factory/=lib/rain.factory/src/",
     "rain.interpreter.interface/=lib/rain.interpreter.interface/src/",
+    "rain.sol.codegen/=lib/rain.interpreter.interface/lib/rain.sol.codegen/src/",
     "rain.verify.interface/=lib/rain.verify.interface/src/",
 ]
 
 bytecode_hash = "none"
 cbor_metadata = false
+
+fs_permissions = [{ access = "read-write", path = "./src/generated"}]
+
+[rpc_endpoints]
+arbitrum = "${CI_DEPLOY_ARBITRUM_RPC_URL}"
+base = "${CI_DEPLOY_BASE_RPC_URL}"
+base_sepolia = "${CI_DEPLOY_BASE_SEPOLIA_RPC_URL}"
+flare = "${CI_DEPLOY_FLARE_RPC_URL}"
+polygon = "${CI_DEPLOY_POLYGON_RPC_URL}"
+
+[etherscan]
+arbitrum = { key = "${CI_DEPLOY_ARBITRUM_ETHERSCAN_API_KEY}" }
+base = { key = "${CI_DEPLOY_BASE_ETHERSCAN_API_KEY}" }
+base_sepolia = { key = "${CI_DEPLOY_BASE_SEPOLIA_ETHERSCAN_API_KEY}" }
+flare = { key = "${CI_DEPLOY_FLARE_ETHERSCAN_API_KEY}" }
+polygon = { key = "${CI_DEPLOY_POLYGON_ETHERSCAN_API_KEY}" }

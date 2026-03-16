@@ -2,8 +2,9 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {AccessControlUpgradeable as AccessControl} from
-    "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
+import {
+    AccessControlUpgradeable as AccessControl
+} from "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
 import {LibEvidence} from "../lib/LibEvidence.sol";
 import {LibUint256Array} from "rain.solmem/lib/LibUint256Array.sol";
 import {
@@ -17,15 +18,16 @@ import {
 import {IVerifyCallbackV1} from "rain.verify.interface/interface/IVerifyCallbackV1.sol";
 import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
-import {ZeroAdmin, NotApproved, AlreadyExists} from "../err/ErrVerify.sol";
+import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount, TimestampOverflow} from "../err/ErrVerify.sol";
 
 /// Records the time a verify session reaches each status.
-/// If a status is not reached it is left as UNINITIALIZED, i.e. 0xFFFFFFFF.
-/// Most accounts will never be banned so most accounts will never reach every
-/// status, which is a good thing.
-/// @param addedSince Time the address was added else 0xFFFFFFFF.
-/// @param approvedSince Time the address was approved else 0xFFFFFFFF.
-/// @param bannedSince Time the address was banned else 0xFFFFFFFF.
+/// `approvedSince` and `bannedSince` are set to UNINITIALIZED (0xFFFFFFFF)
+/// when an account is first added, indicating those statuses have not been
+/// reached. `addedSince` is 0 (EVM default) for accounts that have never
+/// been added, or a timestamp once added.
+/// @param addedSince Time the address was added, or 0 if never added.
+/// @param approvedSince Time the address was approved, or 0xFFFFFFFF if not.
+/// @param bannedSince Time the address was banned, or 0xFFFFFFFF if not.
 struct State {
     uint32 addedSince;
     uint32 approvedSince;
@@ -196,6 +198,8 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     uint32 private constant UNINITIALIZED = type(uint32).max;
 
     /// Emitted when the `Verify` contract is initialized.
+    /// @param sender The `msg.sender` that initialized the contract.
+    /// @param config The initialization config.
     event Initialize(address sender, VerifyConfig config);
 
     /// Emitted when evidence is first submitted to approve an account.
@@ -303,6 +307,7 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// Typed accessor into states.
     /// @param account The account to return the current `State` for.
+    /// @return The current `State` for the given account.
     function state(address account) external view returns (State memory) {
         return sStates[account];
     }
@@ -312,6 +317,11 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     /// @param timestamp The timestamp to compare `State` against.
     /// @return status The status in `State` given `timestamp`.
     function statusAtTime(State memory lState, uint256 timestamp) public pure returns (VerifyStatus status) {
+        // State fields are uint32. A timestamp >= UNINITIALIZED would
+        // incorrectly match the sentinel as a real timestamp.
+        if (timestamp >= UNINITIALIZED) {
+            revert TimestampOverflow(timestamp);
+        }
         // The state hasn't even been added so is picking up time zero as the
         // evm fallback value. In this case if we checked other times using
         // a `<=` equality they would incorrectly return `true` always due to
@@ -363,11 +373,16 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
 
     /// An account adds their own verification evidence.
     /// Internally `msg.sender` is used; delegated `add` is not supported.
+    /// Only NIL and ADDED accounts may call `add`. APPROVED accounts revert
+    /// with `AlreadyExists`. BANNED accounts revert with `AlreadyExists`
+    /// because they must appeal to a `REMOVER` via `requestRemove` instead.
+    /// ADDED accounts may call `add` multiple times to submit new evidence
+    /// without changing their state.
     /// @param data The evidence to support approving the `msg.sender`.
     function add(bytes calldata data) external {
         State memory lState = sStates[msg.sender];
         VerifyStatus currentStatus = statusAtTime(lState, block.timestamp);
-        if (currentStatus.eq(VERIFY_STATUS_APPROVED) && !currentStatus.eq(VERIFY_STATUS_BANNED)) {
+        if (currentStatus.eq(VERIFY_STATUS_APPROVED) || currentStatus.eq(VERIFY_STATUS_BANNED)) {
             revert AlreadyExists();
         }
         // An account that hasn't already been added need a new state.
@@ -546,7 +561,7 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     /// A `REMOVER` can scrub state mapping from an account.
     /// A malicious account MUST be banned rather than removed.
     /// Removal is useful to reset the whole process in case of some mistake.
-    /// @param evidences All evidence to suppor the removal.
+    /// @param evidences All evidence to support the removal.
     function remove(Evidence[] memory evidences) external onlyRole(REMOVER) {
         unchecked {
             State memory lState;
@@ -576,10 +591,16 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
         }
     }
 
-    /// Any approved address can request some address be removed.
+    /// Any non-NIL account can request some address be removed.
+    /// This includes added, approved, and banned accounts. Banned accounts
+    /// need this as their only on-chain mechanism to appeal for removal, since
+    /// only a `REMOVER` can actually call `remove` to reset their state.
     /// Frivolous requestors SHOULD expect to find themselves banned.
     /// @param evidences Array of evidences to request removal of.
-    function requestRemove(Evidence[] calldata evidences) external onlyApproved {
+    function requestRemove(Evidence[] calldata evidences) external {
+        if (statusAtTime(sStates[msg.sender], block.timestamp).eq(VERIFY_STATUS_NIL)) {
+            revert UnknownAccount();
+        }
         unchecked {
             for (uint256 i = 0; i < evidences.length; i++) {
                 emit RequestRemove(msg.sender, evidences[i]);

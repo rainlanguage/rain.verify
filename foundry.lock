@@ -1,0 +1,17 @@
+{
+  "lib/openzeppelin-contracts-upgradeable": {
+    "rev": "7bf4727aacdbfaa0f36cbd664654d0c9e1dc52bf"
+  },
+  "lib/rain.factory": {
+    "rev": "0b55d7e770633c443577e4eddf6ac832fac5daeb"
+  },
+  "lib/rain.interpreter.interface": {
+    "rev": "70d9fae479072d0dad154ba203fd9b6c17d553b2"
+  },
+  "lib/rain.solmem": {
+    "rev": "314af4305303204e94fbee80e7e220d1569c45bb"
+  },
+  "lib/rain.verify.interface": {
+    "rev": "2c6942e5f1f96783f6173d59817e3de6e47e93ff"
+  }
+}
