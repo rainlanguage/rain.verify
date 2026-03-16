@@ -16,6 +16,8 @@ import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/IClone
 import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount} from "../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../src/lib/LibVerifyStatus.sol";
 import {Clones} from "rain.factory/../lib/openzeppelin-contracts/contracts/proxy/Clones.sol";
+import {StringsUpgradeable} from
+    "openzeppelin-contracts-upgradeable/contracts/utils/StringsUpgradeable.sol";
 
 /// @title VerifyApproveTest
 /// @notice Tests for `approve` covering role separation, implicit add+approve,
@@ -31,6 +33,15 @@ contract VerifyApproveTest is Test {
     bytes32 internal constant APPROVER_ADMIN_ROLE = keccak256("APPROVER_ADMIN");
     bytes32 internal constant REMOVER_ROLE = keccak256("REMOVER");
     bytes32 internal constant BANNER_ROLE = keccak256("BANNER");
+
+    function _accessControlError(address account, bytes32 role) internal pure returns (bytes memory) {
+        return abi.encodePacked(
+            "AccessControl: account ",
+            StringsUpgradeable.toHexString(account),
+            " is missing role ",
+            StringsUpgradeable.toHexString(uint256(role), 32)
+        );
+    }
 
     constructor() {
         Verify implementation = new Verify();
@@ -55,9 +66,7 @@ contract VerifyApproveTest is Test {
         Evidence[] memory evidences = new Evidence[](1);
         evidences[0] = Evidence(user, data);
 
-        // OZ v4 AccessControl reverts with a string whose content depends on
-        // the fuzzed address, so we cannot predict it exactly.
-        vm.expectRevert();
+        vm.expectRevert(_accessControlError(approver, REMOVER_ROLE));
         vm.prank(approver);
         I_VERIFY.remove(evidences);
     }
