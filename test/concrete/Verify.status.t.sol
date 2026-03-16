@@ -13,6 +13,7 @@ import {
     VERIFY_STATUS_BANNED
 } from "rain.verify.interface/interface/IVerifyV1.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
+import {TimestampOverflow} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
@@ -43,9 +44,10 @@ contract VerifyStatusTest is Test {
 
     /// `statusAtTime` returns NIL for a state where `addedSince` is 0 (never
     /// added), regardless of the timestamp queried.
-    function testStatusNilState(uint256 timestamp) external view {
+    function testStatusNilState(uint32 timestamp) external view {
+        vm.assume(timestamp < UNINITIALIZED);
         State memory nilState = State(0, 0, 0);
-        assertTrue(I_VERIFY.statusAtTime(nilState, timestamp).eq(VERIFY_STATUS_NIL));
+        assertTrue(I_VERIFY.statusAtTime(nilState, uint256(timestamp)).eq(VERIFY_STATUS_NIL));
     }
 
     /// `statusAtTime` returns NIL when the query timestamp is before the
@@ -94,16 +96,17 @@ contract VerifyStatusTest is Test {
 
     /// `statusAtTime` returns BANNED when the query timestamp is at or after
     /// `bannedSince`, regardless of approval status.
-    function testStatusBanned(uint32 addedSince, uint32 approvedSince, uint32 bannedSince, uint256 timestamp)
+    function testStatusBanned(uint32 addedSince, uint32 approvedSince, uint32 bannedSince, uint32 timestamp)
         external
         view
     {
         vm.assume(addedSince > 0);
         vm.assume(bannedSince < UNINITIALIZED);
         vm.assume(bannedSince >= addedSince);
-        vm.assume(timestamp >= uint256(bannedSince));
+        vm.assume(timestamp >= bannedSince);
+        vm.assume(timestamp < UNINITIALIZED);
         State memory lState = State(addedSince, approvedSince, bannedSince);
-        assertTrue(I_VERIFY.statusAtTime(lState, timestamp).eq(VERIFY_STATUS_BANNED));
+        assertTrue(I_VERIFY.statusAtTime(lState, uint256(timestamp)).eq(VERIFY_STATUS_BANNED));
     }
 
     /// `statusAtTime` returns BANNED even when the approval happened before
@@ -112,16 +115,17 @@ contract VerifyStatusTest is Test {
         uint32 addedSince,
         uint32 approvedSince,
         uint32 bannedSince,
-        uint256 timestamp
+        uint32 timestamp
     ) external view {
         vm.assume(addedSince > 0);
         vm.assume(approvedSince < UNINITIALIZED);
         vm.assume(bannedSince < UNINITIALIZED);
         vm.assume(approvedSince >= addedSince);
         vm.assume(bannedSince >= approvedSince);
-        vm.assume(timestamp >= uint256(bannedSince));
+        vm.assume(timestamp >= bannedSince);
+        vm.assume(timestamp < UNINITIALIZED);
         State memory lState = State(addedSince, approvedSince, bannedSince);
-        assertTrue(I_VERIFY.statusAtTime(lState, timestamp).eq(VERIFY_STATUS_BANNED));
+        assertTrue(I_VERIFY.statusAtTime(lState, uint256(timestamp)).eq(VERIFY_STATUS_BANNED));
     }
 
     /// Full lifecycle integration test: walks an account through NIL -> ADDED
@@ -193,5 +197,15 @@ contract VerifyStatusTest is Test {
         assertTrue(I_VERIFY.accountStatusAtTime(user, banTimestamp).eq(VERIFY_STATUS_NIL));
         assertTrue(I_VERIFY.accountStatusAtTime(user, approveTimestamp).eq(VERIFY_STATUS_NIL));
         assertTrue(I_VERIFY.accountStatusAtTime(user, addTimestamp).eq(VERIFY_STATUS_NIL));
+    }
+
+    /// `statusAtTime` MUST revert with `TimestampOverflow` when timestamp
+    /// reaches or exceeds the UNINITIALIZED sentinel (`type(uint32).max`).
+    function testStatusRevertsAtUint32MaxTimestamp(uint32 addedSince, uint256 timestamp) external {
+        vm.assume(addedSince > 0);
+        vm.assume(timestamp >= uint256(type(uint32).max));
+        State memory lState = State(addedSince, UNINITIALIZED, UNINITIALIZED);
+        vm.expectRevert(abi.encodeWithSelector(TimestampOverflow.selector, timestamp));
+        I_VERIFY.statusAtTime(lState, timestamp);
     }
 }

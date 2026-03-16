@@ -14,3 +14,7 @@ error AlreadyExists();
 /// @dev Thrown when a NIL account attempts an action that requires the account
 /// to have been previously added to the system.
 error UnknownAccount();
+
+/// @dev Thrown when a timestamp exceeds the uint32 range used by State fields.
+/// @param timestamp The timestamp that overflowed.
+error TimestampOverflow(uint256 timestamp);

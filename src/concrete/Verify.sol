@@ -18,7 +18,7 @@ import {
 import {IVerifyCallbackV1} from "rain.verify.interface/interface/IVerifyCallbackV1.sol";
 import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
-import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount} from "../err/ErrVerify.sol";
+import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount, TimestampOverflow} from "../err/ErrVerify.sol";
 
 /// Records the time a verify session reaches each status.
 /// `approvedSince` and `bannedSince` are set to UNINITIALIZED (0xFFFFFFFF)
@@ -317,6 +317,11 @@ contract Verify is IVerifyV1, ICloneableV2, AccessControl {
     /// @param timestamp The timestamp to compare `State` against.
     /// @return status The status in `State` given `timestamp`.
     function statusAtTime(State memory lState, uint256 timestamp) public pure returns (VerifyStatus status) {
+        // State fields are uint32. A timestamp >= UNINITIALIZED would
+        // incorrectly match the sentinel as a real timestamp.
+        if (timestamp >= UNINITIALIZED) {
+            revert TimestampOverflow(timestamp);
+        }
         // The state hasn't even been added so is picking up time zero as the
         // evm fallback value. In this case if we checked other times using
         // a `<=` equality they would incorrectly return `true` always due to
