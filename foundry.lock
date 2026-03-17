@@ -1,6 +1,15 @@
 {
+  "lib/forge-std": {
+    "tag": {
+      "name": "v1.15.0",
+      "rev": "0844d7e1fc5e60d77b68e469bff60265f236c398"
+    }
+  },
   "lib/openzeppelin-contracts-upgradeable": {
     "rev": "7bf4727aacdbfaa0f36cbd664654d0c9e1dc52bf"
+  },
+  "lib/rain.deploy": {
+    "rev": "43a6ed3a98f0141e1963b4b9136e8c80e2889bd1"
   },
   "lib/rain.factory": {
     "rev": "0b55d7e770633c443577e4eddf6ac832fac5daeb"
