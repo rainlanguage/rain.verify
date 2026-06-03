@@ -25,7 +25,7 @@ fs_permissions = [{ access = "read-write", path = "./src/generated"}]
 [rpc_endpoints]
 arbitrum = "${ARBITRUM_RPC_URL}"
 base = "${BASE_RPC_URL}"
-base_sepolia = "${CI_DEPLOY_BASE_SEPOLIA_RPC_URL}"
+base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
 flare = "${FLARE_RPC_URL}"
 polygon = "${POLYGON_RPC_URL}"
 
