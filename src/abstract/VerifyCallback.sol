@@ -2,10 +2,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity ^0.8.25;
 
-import {IVerifyCallbackV1, Evidence} from "rain.verify.interface/interface/IVerifyCallbackV1.sol";
-import {
-    OwnableUpgradeable as Ownable
-} from "openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import {IVerifyCallbackV1, Evidence} from "rain-verify-interface-0.1.0/src/interface/IVerifyCallbackV1.sol";
+import {OwnableUpgradeable as Ownable} from "@openzeppelin-contracts-upgradeable-5.6.1/access/OwnableUpgradeable.sol";
 
 /// @title VerifyCallback
 /// Implements empty virtual functions for every function in `IVerifyCallbackV1`

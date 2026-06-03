@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity ^0.8.25;
 
-import {VerifyStatus} from "rain.verify.interface/interface/IVerifyV1.sol";
+import {VerifyStatus} from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
 
 library LibVerifyStatus {
     /// @param a The first status.

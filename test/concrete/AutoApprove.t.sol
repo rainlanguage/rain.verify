@@ -2,10 +2,10 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {Test, Vm} from "forge-std/Test.sol";
+import {Test, Vm} from "forge-std-1.16.1/src/Test.sol";
 import {AutoApprove, AutoApproveConfig, BadEvidenceLength} from "../../src/concrete/AutoApprove.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {Ownable} from "@openzeppelin-contracts-5.6.1/access/Ownable.sol";
+import {Initializable} from "@openzeppelin-contracts-5.6.1/proxy/utils/Initializable.sol";
 import {Verify, VerifyConfig} from "../../src/concrete/Verify.sol";
 import {
     Evidence,
@@ -14,20 +14,23 @@ import {
     VERIFY_STATUS_ADDED,
     VERIFY_STATUS_APPROVED,
     VERIFY_STATUS_BANNED
-} from "rain.verify.interface/interface/IVerifyV1.sol";
-import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
+} from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.1.1/src/interface/ICloneableV2.sol";
 import {
     IInterpreterV4,
     StackItem,
     EvalV4,
     SourceIndexV2,
     DEFAULT_STATE_NAMESPACE
-} from "rain.interpreter.interface/interface/unstable/IInterpreterV4.sol";
-import {IInterpreterStoreV3} from "rain.interpreter.interface/interface/unstable/IInterpreterStoreV3.sol";
-import {EvaluableV4} from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
-import {StateNamespace, FullyQualifiedNamespace} from "rain.interpreter.interface/interface/IInterpreterV3.sol";
+} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterV4.sol";
+import {IInterpreterStoreV3} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterStoreV3.sol";
+import {EvaluableV4} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterCallerV4.sol";
+import {
+    StateNamespace,
+    FullyQualifiedNamespace
+} from "rain-interpreter-interface-0.1.0/src/interface/deprecated/v2/IInterpreterV3.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {Clones} from "@openzeppelin-contracts-5.6.1/proxy/Clones.sol";
 
 /// @dev Mock interpreter that returns a configurable stack value from `eval4`.
 /// Does NOT inherit `IInterpreterV4` because the interface declares `calldata`
