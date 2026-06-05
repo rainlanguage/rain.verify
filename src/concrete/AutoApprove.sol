@@ -2,24 +2,24 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {Evidence} from "rain.verify.interface/interface/IVerifyV1.sol";
+import {Evidence} from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
 import {LibEvidence} from "../lib/LibEvidence.sol";
 import {Verify} from "./Verify.sol";
 import {VerifyCallback} from "../abstract/VerifyCallback.sol";
-import {LibUint256Array} from "rain.solmem/lib/LibUint256Array.sol";
+import {LibUint256Array} from "rain-solmem-0.1.3/src/lib/LibUint256Array.sol";
 import {
     IInterpreterV4,
     SourceIndexV2,
     DEFAULT_STATE_NAMESPACE,
     StackItem,
     EvalV4
-} from "rain.interpreter.interface/interface/unstable/IInterpreterV4.sol";
+} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterV4.sol";
 import {
     IInterpreterCallerV4,
     EvaluableV4
-} from "rain.interpreter.interface/interface/unstable/IInterpreterCallerV4.sol";
-import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain.factory/interface/ICloneableV2.sol";
-import {LibNamespace} from "rain.interpreter.interface/lib/ns/LibNamespace.sol";
+} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterCallerV4.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.1.1/src/interface/ICloneableV2.sol";
+import {LibNamespace} from "rain-interpreter-interface-0.1.0/src/lib/ns/LibNamespace.sol";
 
 /// @dev Thrown when evidence data is not exactly 32 bytes, which is required
 /// for AutoApprove to pass as context to the interpreter.

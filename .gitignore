@@ -1,4 +1,4 @@
 out
 cache
-.fixes
-.env
+node_modules
+dependencies

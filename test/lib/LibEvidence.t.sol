@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {Test} from "forge-std/Test.sol";
-import {Evidence} from "rain.verify.interface/interface/IVerifyV1.sol";
+import {Test} from "forge-std-1.16.1/src/Test.sol";
+import {Evidence} from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
 import {LibEvidence} from "../../src/lib/LibEvidence.sol";
 
 /// @title LibEvidenceHarness
