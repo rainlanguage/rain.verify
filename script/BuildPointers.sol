@@ -4,8 +4,8 @@ pragma solidity =0.8.25;
 
 import {Script} from "forge-std-1.16.1/src/Script.sol";
 import {LibRainDeploy} from "rain-deploy-0.1.2/src/lib/LibRainDeploy.sol";
-import {LibCodeGen} from "rain-sol-codegen-0.1.0/src/lib/LibCodeGen.sol";
-import {LibFs} from "rain-sol-codegen-0.1.0/src/lib/LibFs.sol";
+import {LibCodeGen} from "rain-sol-codegen-0.1.3/src/lib/LibCodeGen.sol";
+import {LibFs} from "rain-sol-codegen-0.1.3/src/lib/LibFs.sol";
 import {Verify} from "../src/concrete/Verify.sol";
 import {AutoApprove} from "../src/concrete/AutoApprove.sol";
 
@@ -14,17 +14,6 @@ import {AutoApprove} from "../src/concrete/AutoApprove.sol";
 /// environment and generates `.pointers.sol` files with deterministic deploy
 /// addresses and bytecode hashes.
 contract BuildPointers is Script {
-    function addressConstantString(address addr) internal pure returns (string memory) {
-        return string.concat(
-            "\n",
-            "/// @dev The deterministic deploy address of the contract when deployed via\n",
-            "/// the Zoltu factory.\n",
-            "address constant DEPLOYED_ADDRESS = address(",
-            vm.toString(addr),
-            ");\n"
-        );
-    }
-
     function buildVerifyPointers() internal {
         address deployed = LibRainDeploy.deployZoltu(type(Verify).creationCode);
 
@@ -33,7 +22,12 @@ contract BuildPointers is Script {
             deployed,
             "Verify",
             string.concat(
-                addressConstantString(deployed),
+                LibCodeGen.addressConstantString(
+                    vm,
+                    "/// @dev The deterministic deploy address of the contract when deployed via\n/// the Zoltu factory.",
+                    "DEPLOYED_ADDRESS",
+                    deployed
+                ),
                 LibCodeGen.bytesConstantString(
                     vm, "/// @dev The creation bytecode of the contract.", "CREATION_CODE", type(Verify).creationCode
                 )
@@ -49,7 +43,12 @@ contract BuildPointers is Script {
             deployed,
             "AutoApprove",
             string.concat(
-                addressConstantString(deployed),
+                LibCodeGen.addressConstantString(
+                    vm,
+                    "/// @dev The deterministic deploy address of the contract when deployed via\n/// the Zoltu factory.",
+                    "DEPLOYED_ADDRESS",
+                    deployed
+                ),
                 LibCodeGen.bytesConstantString(
                     vm,
                     "/// @dev The creation bytecode of the contract.",
