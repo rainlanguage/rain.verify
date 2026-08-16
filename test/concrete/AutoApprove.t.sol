@@ -19,60 +19,15 @@ import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.1.1/src/interf
 import {
     IInterpreterV4,
     StackItem,
-    EvalV4,
     SourceIndexV2,
     DEFAULT_STATE_NAMESPACE
 } from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterV4.sol";
 import {IInterpreterStoreV3} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterStoreV3.sol";
 import {EvaluableV4} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterCallerV4.sol";
-import {
-    StateNamespace,
-    FullyQualifiedNamespace
-} from "rain-interpreter-interface-0.1.0/src/interface/deprecated/v2/IInterpreterV3.sol";
+import {MockInterpreterV4} from "../mock/MockInterpreterV4.sol";
+import {MockInterpreterStoreV3} from "../mock/MockInterpreterStoreV3.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "@openzeppelin-contracts-5.6.1/proxy/Clones.sol";
-
-/// @dev Mock interpreter that returns a configurable stack value from `eval4`.
-/// Does NOT inherit `IInterpreterV4` because the interface declares `calldata`
-/// return types which cannot be produced from Solidity storage/memory. The ABI
-/// encoding is identical so the caller (AutoApprove) can decode the response
-/// through the interface pointer without issue.
-contract MockInterpreterV4 {
-    /// @dev The stack to return from `eval4`.
-    StackItem[] public sStack;
-
-    /// @dev Set the stack that `eval4` will return.
-    function setStack(StackItem[] memory stack) external {
-        delete sStack;
-        for (uint256 i = 0; i < stack.length; i++) {
-            sStack.push(stack[i]);
-        }
-    }
-
-    /// @dev Convenience to set a single-element stack.
-    function setReturnValue(StackItem value) external {
-        delete sStack;
-        sStack.push(value);
-    }
-
-    /// @dev Matches the `eval4` selector from `IInterpreterV4`.
-    function eval4(EvalV4 calldata) external view returns (StackItem[] memory stack, bytes32[] memory kvs) {
-        stack = sStack;
-        kvs = new bytes32[](0);
-    }
-}
-
-/// @dev Mock store that implements all required functions of
-/// `IInterpreterStoreV3` as no-ops.
-contract MockInterpreterStoreV3 is IInterpreterStoreV3 {
-    /// @inheritdoc IInterpreterStoreV3
-    function set(StateNamespace, bytes32[] calldata) external override {}
-
-    /// @inheritdoc IInterpreterStoreV3
-    function get(FullyQualifiedNamespace, bytes32) external pure override returns (bytes32) {
-        return bytes32(0);
-    }
-}
 
 /// @title AutoApproveTest
 /// @notice Tests for the `AutoApprove` callback contract, covering
