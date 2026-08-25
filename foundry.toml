@@ -37,16 +37,16 @@ flare = { key = "${CI_DEPLOY_FLARE_ETHERSCAN_API_KEY}" }
 polygon = { key = "${CI_DEPLOY_POLYGON_ETHERSCAN_API_KEY}" }
 
 [dependencies]
-forge-std = "1.16.1"
+forge-std = "1.16.2"
 "@openzeppelin-contracts" = "5.6.1"
 "@openzeppelin-contracts-upgradeable" = "5.6.1"
 rainlang = "0.1.2"
 "rain-interpreter-interface" = "0.1.0"
 "rain-verify-interface" = "0.1.0"
 "rain-factory" = "0.1.1"
-"rain-deploy" = "0.1.2"
+"rain-deploy" = "0.1.7"
 "rain-metadata" = "0.1.0"
-"rain-sol-codegen" = "0.1.0"
+"rain-sol-codegen" = "0.1.36"
 "rain-math-float" = "0.1.1"
 "rain-lib-typecast" = "0.1.0"
 "rain-extrospection" = "0.1.0"

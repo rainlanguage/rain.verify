@@ -2,13 +2,13 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {Test} from "forge-std-1.16.1/src/Test.sol";
-import {LibRainDeploy} from "rain-deploy-0.1.2/src/lib/LibRainDeploy.sol";
+import {Test} from "forge-std-1.16.2/src/Test.sol";
+import {LibRainDeploy} from "rain-deploy-0.1.7/src/lib/LibRainDeploy.sol";
 import {Verify} from "../../src/concrete/Verify.sol";
 import {
     DEPLOYED_ADDRESS as VERIFY_DEPLOYED_ADDRESS,
     BYTECODE_HASH as VERIFY_BYTECODE_HASH
-} from "../../src/generated/Verify.pointers.sol";
+} from "../../src/generated/Verify.sol";
 
 /// @title VerifyZoltuTest
 /// @notice Verifies that the Zoltu deterministic deploy constants in
