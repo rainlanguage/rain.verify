@@ -22,13 +22,13 @@ import {
     EvalV4,
     SourceIndexV2,
     DEFAULT_STATE_NAMESPACE
-} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterV4.sol";
-import {IInterpreterStoreV3} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterStoreV3.sol";
-import {EvaluableV4} from "rain-interpreter-interface-0.1.0/src/interface/IInterpreterCallerV4.sol";
+} from "rainlang-interface-0.2.8/src/interface/IInterpreterV4.sol";
+import {IInterpreterStoreV3} from "rainlang-interface-0.2.8/src/interface/IInterpreterStoreV3.sol";
+import {EvaluableV4} from "rainlang-interface-0.2.8/src/interface/IInterpreterCallerV4.sol";
 import {
     StateNamespace,
     FullyQualifiedNamespace
-} from "rain-interpreter-interface-0.1.0/src/interface/deprecated/v2/IInterpreterV3.sol";
+} from "rainlang-interface-0.2.8/src/interface/deprecated/v2/IInterpreterV3.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "@openzeppelin-contracts-5.6.1/proxy/Clones.sol";
 

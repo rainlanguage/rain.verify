@@ -6,7 +6,7 @@ import {
     AccessControlUpgradeable as AccessControl
 } from "@openzeppelin-contracts-upgradeable-5.6.1/access/AccessControlUpgradeable.sol";
 import {LibEvidence} from "../lib/LibEvidence.sol";
-import {LibUint256Array} from "rain-solmem-0.1.3/src/lib/LibUint256Array.sol";
+import {LibUint256Array} from "rain-solmem-0.1.28/src/lib/LibUint256Array.sol";
 import {
     IVerifyV1,
     Evidence,
