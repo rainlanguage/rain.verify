@@ -9,7 +9,6 @@ on:
         options:
           - verify
           - auto-approve
-
 jobs:
   deploy:
     uses: rainlanguage/rainix/.github/workflows/rainix-manual-sol-artifacts.yaml@main
