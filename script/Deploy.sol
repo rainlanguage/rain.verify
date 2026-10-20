@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {Script} from "forge-std-1.16.2/src/Script.sol";
-import {LibRainDeploy} from "rain-deploy-0.1.7/src/lib/LibRainDeploy.sol";
+import {Script} from "forge-std-1.17.0/src/Script.sol";
+import {LibRainDeploy, DeployDependency} from "rain-deploy-0.1.18/src/lib/LibRainDeploy.sol";
 import {Verify} from "../src/concrete/Verify.sol";
 import {AutoApprove} from "../src/concrete/AutoApprove.sol";
 import {
@@ -35,7 +35,7 @@ contract Deploy is Script {
                 "src/concrete/Verify.sol:Verify",
                 VERIFY_DEPLOYED_ADDRESS,
                 VERIFY_BYTECODE_HASH,
-                new address[](0)
+                new DeployDependency[](0)
             );
         } else if (suite == DEPLOYMENT_SUITE_AUTO_APPROVE) {
             LibRainDeploy.deployAndBroadcast(
@@ -46,7 +46,7 @@ contract Deploy is Script {
                 "src/concrete/AutoApprove.sol:AutoApprove",
                 AUTO_APPROVE_DEPLOYED_ADDRESS,
                 AUTO_APPROVE_BYTECODE_HASH,
-                new address[](0)
+                new DeployDependency[](0)
             );
         } else {
             revert("Unknown deployment suite");

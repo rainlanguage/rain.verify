@@ -39,6 +39,8 @@ contract MockCallback is IVerifyCallbackV1 {
     Evidence[] public lastRemoveEvidences;
 
     /// @inheritdoc IVerifyCallbackV1
+    // The mock records whatever caller Verify passes; asserting it is the test's job.
+    // forge-lint: disable-next-line(missing-zero-check)
     function afterAdd(address adder, Evidence[] calldata evidences) external override {
         afterAddCalls++;
         lastAddAdder = adder;
@@ -49,6 +51,7 @@ contract MockCallback is IVerifyCallbackV1 {
     }
 
     /// @inheritdoc IVerifyCallbackV1
+    // forge-lint: disable-next-line(missing-zero-check)
     function afterApprove(address approver, Evidence[] calldata evidences) external override {
         afterApproveCalls++;
         lastApproveApprover = approver;
@@ -59,6 +62,7 @@ contract MockCallback is IVerifyCallbackV1 {
     }
 
     /// @inheritdoc IVerifyCallbackV1
+    // forge-lint: disable-next-line(missing-zero-check)
     function afterBan(address banner, Evidence[] calldata evidences) external override {
         afterBanCalls++;
         lastBanBanner = banner;
@@ -69,6 +73,7 @@ contract MockCallback is IVerifyCallbackV1 {
     }
 
     /// @inheritdoc IVerifyCallbackV1
+    // forge-lint: disable-next-line(missing-zero-check)
     function afterRemove(address remover, Evidence[] calldata evidences) external override {
         afterRemoveCalls++;
         lastRemoveRemover = remover;
