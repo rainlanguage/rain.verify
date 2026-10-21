@@ -4,7 +4,7 @@ pragma solidity =0.8.25;
 
 import {
     AccessControlUpgradeable as AccessControl
-} from "@openzeppelin-contracts-upgradeable-5.6.1/access/AccessControlUpgradeable.sol";
+} from "@openzeppelin-contracts-upgradeable-5.7.0/access/AccessControlUpgradeable.sol";
 import {LibEvidence} from "../lib/LibEvidence.sol";
 import {LibUint256Array} from "rain-solmem-0.1.28/src/lib/LibUint256Array.sol";
 import {
@@ -17,7 +17,7 @@ import {
 } from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
 import {IVerifyCallbackV1} from "rain-verify-interface-0.1.0/src/interface/IVerifyCallbackV1.sol";
 import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
-import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.1.1/src/interface/ICloneableV2.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.4/src/interface/ICloneableV2.sol";
 import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount, TimestampOverflow} from "../err/ErrVerify.sol";
 
 /// Records the time a verify session reaches each status.

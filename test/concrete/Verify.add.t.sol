@@ -12,10 +12,10 @@ import {
     VERIFY_STATUS_APPROVED,
     VERIFY_STATUS_BANNED
 } from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
-import {ICloneableV2} from "rain-factory-0.1.1/src/interface/ICloneableV2.sol";
+import {ICloneableV2} from "rain-factory-0.2.4/src/interface/ICloneableV2.sol";
 import {AlreadyExists} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
-import {Clones} from "@openzeppelin-contracts-5.6.1/proxy/Clones.sol";
+import {Clones} from "@openzeppelin-contracts-5.7.0/proxy/Clones.sol";
 
 /// @title VerifyAddTest
 /// @notice Tests that `add` is only accessible from NIL and ADDED states.

@@ -2,8 +2,8 @@
 libs = ["dependencies"]
 remappings = [
   # @openzeppelin packages use their own @openzeppelin/contracts(-upgradeable) imports internally.
-  "@openzeppelin/contracts/=dependencies/@openzeppelin-contracts-5.6.1/",
-  "@openzeppelin/contracts-upgradeable/=dependencies/@openzeppelin-contracts-upgradeable-5.6.1/",
+  "@openzeppelin/contracts/=dependencies/@openzeppelin-contracts-5.7.0/",
+  "@openzeppelin/contracts-upgradeable/=dependencies/@openzeppelin-contracts-upgradeable-5.7.0/",
 ]
 
 
@@ -37,26 +37,27 @@ flare = { key = "${CI_DEPLOY_FLARE_ETHERSCAN_API_KEY}" }
 polygon = { key = "${CI_DEPLOY_POLYGON_ETHERSCAN_API_KEY}" }
 
 [dependencies]
-"rainlang-interface" = "0.2.8"
+"rainlang-interface" = "0.2.13"
 forge-std = "1.17.0"
-"@openzeppelin-contracts" = "5.6.1"
-"@openzeppelin-contracts-upgradeable" = "5.6.1"
-"rainlang" = "0.2.1"
+"@openzeppelin-contracts" = "5.7.0"
+"@openzeppelin-contracts-upgradeable" = "5.7.0"
+"rainlang" = "0.2.14"
 "rain-verify-interface" = "0.1.0"
-"rain-factory" = "0.1.1"
+"rain-factory" = "0.2.4"
 "rain-deploy" = "0.1.18"
-"rain-metadata" = "0.1.0"
+"rain-metadata" = "0.1.43"
 "rain-sol-codegen" = "0.1.39"
-"rain-math-float" = "0.1.1"
-"rain-lib-typecast" = "0.1.0"
+"rain-math-float" = "0.3.10"
+"rain-math-float-deploy" = "0.1.5"
+"rain-lib-typecast" = "0.1.4"
 "rain-extrospection" = "0.1.14"
-"rain-intorastring" = "0.1.0"
-"rain-lib-hash" = "0.1.0"
-"rain-lib-memkv" = "0.1.0"
+"rain-intorastring" = "0.1.4"
+"rain-lib-hash" = "0.1.27"
+"rain-lib-memkv" = "0.2.0"
 "rain-math-binary" = "0.1.4"
 "rain-solmem" = "0.1.28"
-"rain-string" = "0.2.0"
-"rain-tofu-erc20-decimals" = "0.1.1"
+"rain-string" = "0.3.9"
+"rain-tofu-erc20-decimals" = "0.1.4"
 
 [soldeer]
 recursive_deps = false

@@ -5,11 +5,11 @@ pragma solidity =0.8.25;
 import {Test} from "forge-std-1.17.0/src/Test.sol";
 import {Verify, VerifyConfig, State} from "../../src/concrete/Verify.sol";
 import {Evidence, VerifyStatus} from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
-import {ICloneableV2} from "rain-factory-0.1.1/src/interface/ICloneableV2.sol";
+import {ICloneableV2} from "rain-factory-0.2.4/src/interface/ICloneableV2.sol";
 import {ZeroAdmin} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
-import {Clones} from "@openzeppelin-contracts-5.6.1/proxy/Clones.sol";
-import {IAccessControl} from "@openzeppelin-contracts-5.6.1/access/IAccessControl.sol";
+import {Clones} from "@openzeppelin-contracts-5.7.0/proxy/Clones.sol";
+import {IAccessControl} from "@openzeppelin-contracts-5.7.0/access/IAccessControl.sol";
 
 /// @title VerifyAdminTest
 /// @notice Tests for admin role delegation, renunciation, and the ability of

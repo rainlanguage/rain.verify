@@ -2,11 +2,11 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {IInterpreterStoreV3} from "rainlang-interface-0.2.8/src/interface/IInterpreterStoreV3.sol";
+import {IInterpreterStoreV3} from "rainlang-interface-0.2.13/src/interface/IInterpreterStoreV3.sol";
 import {
     StateNamespace,
     FullyQualifiedNamespace
-} from "rainlang-interface-0.2.8/src/interface/deprecated/v2/IInterpreterV3.sol";
+} from "rainlang-interface-0.2.13/src/interface/deprecated/v2/IInterpreterV3.sol";
 
 /// @dev Mock store that implements all required functions of
 /// `IInterpreterStoreV3` as no-ops.
