@@ -5,10 +5,10 @@ pragma solidity =0.8.25;
 import {Test, Vm} from "forge-std-1.17.0/src/Test.sol";
 import {Verify, VerifyConfig, State} from "../../src/concrete/Verify.sol";
 import {Evidence, VerifyStatus} from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
-import {ICloneableV2} from "rain-factory-0.1.1/src/interface/ICloneableV2.sol";
+import {ICloneableV2} from "rain-factory-0.2.0/src/interface/ICloneableV2.sol";
 import {NotApproved} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
-import {Clones} from "@openzeppelin-contracts-5.6.1/proxy/Clones.sol";
+import {Clones} from "@openzeppelin-contracts-5.7.0/proxy/Clones.sol";
 
 /// @title VerifyRequestApproveTest
 /// @notice Tests for `requestApprove` covering event emission, state
