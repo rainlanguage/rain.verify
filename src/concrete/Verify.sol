@@ -17,7 +17,7 @@ import {
 } from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
 import {IVerifyCallbackV1} from "rain-verify-interface-0.1.0/src/interface/IVerifyCallbackV1.sol";
 import {LibVerifyStatus, VerifyStatus} from "../lib/LibVerifyStatus.sol";
-import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.4/src/interface/ICloneableV2.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.5/src/interface/ICloneableV2.sol";
 import {ZeroAdmin, NotApproved, AlreadyExists, UnknownAccount, TimestampOverflow} from "../err/ErrVerify.sol";
 
 /// Records the time a verify session reaches each status.

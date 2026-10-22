@@ -12,7 +12,7 @@ import {
     VERIFY_STATUS_APPROVED,
     VERIFY_STATUS_BANNED
 } from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
-import {ICloneableV2} from "rain-factory-0.2.4/src/interface/ICloneableV2.sol";
+import {ICloneableV2} from "rain-factory-0.2.5/src/interface/ICloneableV2.sol";
 import {NotApproved} from "../../src/err/ErrVerify.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "@openzeppelin-contracts-5.7.0/proxy/Clones.sol";

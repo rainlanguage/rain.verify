@@ -15,7 +15,7 @@ import {
     EvalV4
 } from "rainlang-interface-0.2.13/src/interface/IInterpreterV4.sol";
 import {IInterpreterCallerV4, EvaluableV4} from "rainlang-interface-0.2.13/src/interface/IInterpreterCallerV4.sol";
-import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.4/src/interface/ICloneableV2.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.5/src/interface/ICloneableV2.sol";
 import {LibNamespace} from "rainlang-interface-0.2.13/src/lib/ns/LibNamespace.sol";
 
 /// @dev Thrown when evidence data is not exactly 32 bytes, which is required
