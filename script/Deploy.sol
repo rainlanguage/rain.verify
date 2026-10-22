@@ -3,7 +3,7 @@
 pragma solidity =0.8.25;
 
 import {Script} from "forge-std-1.17.0/src/Script.sol";
-import {LibRainDeploy, DeployDependency} from "rain-deploy-0.1.19/src/lib/LibRainDeploy.sol";
+import {LibRainDeploy, DeployDependency} from "rain-deploy-0.1.20/src/lib/LibRainDeploy.sol";
 import {Verify} from "../src/concrete/Verify.sol";
 import {AutoApprove} from "../src/concrete/AutoApprove.sol";
 import {
