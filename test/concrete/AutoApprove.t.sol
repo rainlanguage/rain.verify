@@ -15,7 +15,7 @@ import {
     VERIFY_STATUS_APPROVED,
     VERIFY_STATUS_BANNED
 } from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
-import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.4/src/interface/ICloneableV2.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.5/src/interface/ICloneableV2.sol";
 import {IInterpreterV4, StackItem} from "rainlang-interface-0.2.13/src/interface/IInterpreterV4.sol";
 import {IInterpreterStoreV3} from "rainlang-interface-0.2.13/src/interface/IInterpreterStoreV3.sol";
 import {EvaluableV4} from "rainlang-interface-0.2.13/src/interface/IInterpreterCallerV4.sol";

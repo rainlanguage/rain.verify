@@ -4,3 +4,5 @@ node_modules
 dependencies
 .pre-commit-config.yaml
 remappings.txt
+.staged-config
+.env
