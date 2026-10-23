@@ -20,21 +20,12 @@ evm_version = "cancun"
 bytecode_hash = "none"
 cbor_metadata = false
 
-fs_permissions = [{ access = "read-write", path = "./src/generated" }]
-
-[rpc_endpoints]
-arbitrum = "${ARBITRUM_RPC_URL}"
-base = "${BASE_RPC_URL}"
-base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
-flare = "${FLARE_RPC_URL}"
-polygon = "${POLYGON_RPC_URL}"
-
-[etherscan]
-arbitrum = { key = "${CI_DEPLOY_ARBITRUM_ETHERSCAN_API_KEY}" }
-base = { key = "${CI_DEPLOY_BASE_ETHERSCAN_API_KEY}" }
-base_sepolia = { key = "${CI_DEPLOY_BASE_SEPOLIA_ETHERSCAN_API_KEY}" }
-flare = { key = "${CI_DEPLOY_FLARE_ETHERSCAN_API_KEY}" }
-polygon = { key = "${CI_DEPLOY_POLYGON_ETHERSCAN_API_KEY}" }
+fs_permissions = [
+  { access = "read", path = "./foundry.toml" },
+  { access = "read", path = "./.env.example" },
+  { access = "read-write", path = "./.staged-config" },
+  { access = "read-write", path = "./src" },
+]
 
 [dependencies]
 "rainlang-interface" = "0.2.13"
@@ -61,3 +52,29 @@ forge-std = "1.17.0"
 
 [soldeer]
 recursive_deps = false
+
+# rain-deploy:generated:rpc_endpoints:begin
+[rpc_endpoints]
+arbitrum = "${ARBITRUM_RPC_URL}"
+base = "${BASE_RPC_URL}"
+base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
+bsc = "${BSC_RPC_URL}"
+ethereum = "${ETHEREUM_RPC_URL}"
+flare = "${FLARE_RPC_URL}"
+hyperevm = "${HYPEREVM_RPC_URL}"
+polygon = "${POLYGON_RPC_URL}"
+robinhood = "${ROBINHOOD_RPC_URL}"
+# rain-deploy:generated:rpc_endpoints:end
+
+# rain-deploy:generated:etherscan:begin
+[etherscan]
+arbitrum = { key = "${CI_DEPLOY_ARBITRUM_ETHERSCAN_API_KEY}", chain = 42161 }
+base = { key = "${CI_DEPLOY_BASE_ETHERSCAN_API_KEY}", chain = 8453 }
+base_sepolia = { key = "${CI_DEPLOY_BASE_SEPOLIA_ETHERSCAN_API_KEY}", chain = 84532 }
+bsc = { key = "${CI_DEPLOY_BSC_ETHERSCAN_API_KEY}", chain = 56 }
+ethereum = { key = "${CI_DEPLOY_ETHEREUM_ETHERSCAN_API_KEY}", chain = 1 }
+flare = { key = "${CI_DEPLOY_FLARE_ETHERSCAN_API_KEY}", chain = 14 }
+hyperevm = { key = "${CI_DEPLOY_HYPEREVM_ETHERSCAN_API_KEY}", chain = 999 }
+polygon = { key = "${CI_DEPLOY_POLYGON_ETHERSCAN_API_KEY}", chain = 137 }
+robinhood = { key = "${CI_DEPLOY_ROBINHOOD_ETHERSCAN_API_KEY}", chain = 4663, url = "https://robinhoodchain.blockscout.com/api" }
+# rain-deploy:generated:etherscan:end
