@@ -28,11 +28,10 @@ fs_permissions = [
 ]
 
 [dependencies]
-"rainlang-interface" = "0.2.13"
 forge-std = "1.17.0"
 "@openzeppelin-contracts" = "5.7.0"
 "@openzeppelin-contracts-upgradeable" = "5.7.0"
-"rainlang" = "0.2.19"
+"rainlang" = "0.2.27"
 "rain-verify-interface" = "0.1.0"
 "rain-factory" = "0.2.5"
 "rain-deploy" = "0.1.25"
@@ -41,7 +40,7 @@ forge-std = "1.17.0"
 "rain-math-float" = "0.3.10"
 "rain-math-float-deploy" = "0.1.7"
 "rain-lib-typecast" = "0.1.4"
-"rain-extrospection" = "0.1.14"
+"rain-extrospection" = "0.1.16"
 "rain-intorastring" = "0.1.4"
 "rain-lib-hash" = "0.1.27"
 "rain-lib-memkv" = "0.2.0"
