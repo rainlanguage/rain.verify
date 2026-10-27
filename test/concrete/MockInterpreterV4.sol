@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2020 Rain Open Source Software Ltd
 pragma solidity =0.8.25;
 
-import {StackItem, EvalV4} from "rainlang-0.2.27/src/interface/IInterpreterV4.sol";
+import {StackItem, EvalV4} from "rainlang-0.2.30/src/interface/IInterpreterV4.sol";
 
 /// @dev Mock interpreter that returns a configurable stack value from `eval4`.
 /// Does NOT inherit `IInterpreterV4` because the interface declares `calldata`
