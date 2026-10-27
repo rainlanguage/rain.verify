@@ -13,10 +13,10 @@ import {
     DEFAULT_STATE_NAMESPACE,
     StackItem,
     EvalV4
-} from "rainlang-0.2.27/src/interface/IInterpreterV4.sol";
-import {IInterpreterCallerV4, EvaluableV4} from "rainlang-0.2.27/src/interface/deprecated/v3/IInterpreterCallerV4.sol";
+} from "rainlang-0.2.30/src/interface/IInterpreterV4.sol";
+import {IInterpreterCallerV4, EvaluableV4} from "rainlang-0.2.30/src/interface/deprecated/v3/IInterpreterCallerV4.sol";
 import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.5/src/interface/ICloneableV2.sol";
-import {LibNamespace} from "rainlang-0.2.27/src/lib/ns/LibNamespace.sol";
+import {LibNamespace} from "rainlang-0.2.30/src/lib/ns/LibNamespace.sol";
 
 /// @dev Thrown when evidence data is not exactly 32 bytes, which is required
 /// for AutoApprove to pass as context to the interpreter.
