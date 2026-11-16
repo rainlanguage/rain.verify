@@ -18,12 +18,20 @@ import {LibRainDeploySnapshot} from "rain-deploy-0.1.33/src/lib/LibRainDeploySna
 /// regenerated here.
 contract Build is BuildScript, VerifyDeploySuites {
     /// @inheritdoc BuildScript
-    function generatedContracts(DeployDeclaration memory) internal pure override returns (GeneratedContract[] memory) {
+    function generatedContracts(DeployDeclaration memory d)
+        internal
+        pure
+        override
+        returns (GeneratedContract[] memory)
+    {
         GeneratedContract[] memory contracts = new GeneratedContract[](2);
-        contracts[0] =
-            GeneratedContract({contractName: "Verify", constantPrefix: "VERIFY", candidate: verifyCandidate()});
+        contracts[0] = GeneratedContract({
+            contractName: "Verify", constantPrefix: "VERIFY", candidate: declaredCandidate(d, VERIFY_SUITE)
+        });
         contracts[1] = GeneratedContract({
-            contractName: "AutoApprove", constantPrefix: "AUTO_APPROVE", candidate: autoApproveCandidate()
+            contractName: "AutoApprove",
+            constantPrefix: "AUTO_APPROVE",
+            candidate: declaredCandidate(d, AUTO_APPROVE_SUITE)
         });
         return contracts;
     }
