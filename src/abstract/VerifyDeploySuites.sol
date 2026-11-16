@@ -40,6 +40,7 @@ abstract contract VerifyDeploySuites is RainDeploySuitesBase {
 
     /// @inheritdoc RainDeploySuitesBase
     function declaration() internal pure override returns (DeployDeclaration memory) {
+        // slither-disable-next-line uninitialized-local
         DeployDeclaration memory declared;
         LibRainDeployDeclaration.extend(declared);
         LibRainDeployZoltuMechanism.extend(declared);
