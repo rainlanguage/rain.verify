@@ -64,9 +64,11 @@ abstract contract VerifyDeploySuites is RainDeploySuitesBase {
     /// @return The creation code.
     function sourceCreationCode(string memory suite) internal pure returns (bytes memory) {
         if (keccak256(bytes(suite)) == keccak256(bytes(VERIFY_SUITE))) {
+            // slither-disable-next-line too-many-digits
             return type(Verify).creationCode;
         }
         if (keccak256(bytes(suite)) == keccak256(bytes(AUTO_APPROVE_SUITE))) {
+            // slither-disable-next-line too-many-digits
             return type(AutoApprove).creationCode;
         }
         revert UnknownDeploymentSuite(suite, string.concat(VERIFY_SUITE, ", ", AUTO_APPROVE_SUITE));
