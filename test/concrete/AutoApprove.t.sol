@@ -15,10 +15,10 @@ import {
     VERIFY_STATUS_APPROVED,
     VERIFY_STATUS_BANNED
 } from "rain-verify-interface-0.1.0/src/interface/IVerifyV1.sol";
-import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.16/src/interface/ICloneableV2.sol";
-import {IInterpreterV4, StackItem} from "rainlang-0.2.37/src/interface/IInterpreterV4.sol";
-import {IInterpreterStoreV3} from "rainlang-0.2.37/src/interface/IInterpreterStoreV3.sol";
-import {EvaluableV4} from "rainlang-0.2.37/src/interface/deprecated/v3/IInterpreterCallerV4.sol";
+import {ICloneableV2, ICLONEABLE_V2_SUCCESS} from "rain-factory-0.2.17/src/interface/ICloneableV2.sol";
+import {IInterpreterV4, StackItem} from "rainlang-0.2.39/src/interface/IInterpreterV4.sol";
+import {IInterpreterStoreV3} from "rainlang-0.2.39/src/interface/IInterpreterStoreV3.sol";
+import {EvaluableV4} from "rainlang-0.2.39/src/interface/deprecated/v3/IInterpreterCallerV4.sol";
 import {LibVerifyStatus} from "../../src/lib/LibVerifyStatus.sol";
 import {Clones} from "@openzeppelin-contracts-5.7.0/proxy/Clones.sol";
 import {MockInterpreterV4} from "./MockInterpreterV4.sol";
